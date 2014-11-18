@@ -62,23 +62,10 @@ module mfe (mfe_ifc.dut d);
     wire                out_led_done;
     
     // RSA wires
-    /*wire key_valid_i, dat_valid_i, ps2_valid_i;
-    wire [31:0] key_i;
-    wire [31:0] dat_i;
-    wire [15:0] ps2_i; 
-    wire key_ready_o, dat_ready_o, ps2_ready_o;
-    wire [31:0] key_o;*/
-    wire key_valid_o;
     wire led_pass_o, led_fail_o;
     
 
     // AES wires
-    wire key_valid_i, dat_valid_i;
-    wire [31:0] key_i;
-    wire [31:0] dat_i;
-    wire dat_ready_o; 
-    wire [31:0] dat_o;
-    wire dat_valid_o;
     wire led_proc_o;
     
     // The PS/2 module wires (a small set for communication)
@@ -98,9 +85,7 @@ module mfe (mfe_ifc.dut d);
                          .ready_i(dat_in_ready),
                          .writing_o(dat_writing),
                          .reading_o(dat_reading),
-                         .clk(d.clk),.rst(d.rst),
-												 .led_done_o(),
-												 .*);
+                         .clk(d.clk), .rst(d.rst), .led_done_o());
     file_system key_fs  (.to_slave_o(d.key_spi_card_o),
                          .from_slave_i(d.key_spi_card_i), .data_i(key_out),
                          .valid_i(key_out_valid), .eof_i(key_out_eof),
@@ -111,9 +96,7 @@ module mfe (mfe_ifc.dut d);
                          .ready_i(key_in_ready),
                          .writing_o(key_writing),
                          .reading_o(key_reading),
-                         .clk(d.clk),.rst(d.rst),
-												 .led_done_o(),
-											   .*);
+                         .clk(d.clk), .rst(d.rst), .led_done_o());
     file_system out_fs  (.to_slave_o(d.out_spi_card_o),
                          .from_slave_i(d.out_spi_card_i), .data_i(out_out),
                          .valid_i(out_out_valid), .eof_i(out_out_eof),
@@ -125,8 +108,7 @@ module mfe (mfe_ifc.dut d);
                          .writing_o(out_writing),
                          .reading_o(out_reading),
                          .led_done_o(out_led_done),
-                         .clk(d.clk),.rst(d.rst),
-											   .*);
+                         .clk(d.clk), .rst(d.rst));
     
     rsa_decryptor key_decrypt  (.key_valid_i(key_in_valid),
                                 .dat_valid_i(dat_in_valid),
@@ -135,14 +117,22 @@ module mfe (mfe_ifc.dut d);
                                 .dat_i(dat_in),
                                 .ps2_i(key_char_out),
                                 .dat_read_o(dat_in_ready),
-                                .clk(d.clk),.rst(d.rst),
-															  .*);
+                                .clk(d.clk), .rst(d.rst), .key_ready_o(),
+                                .dat_ready_o(), .ps2_ready_o(), .key_read_o(),
+                                .key_o(), .key_valid_o(),
+                                .led_pass_o(led_pass_o),
+                                .led_fail_o(led_fail_o));
 
     aes_decryptor file_decrypt (.dat_valid_i(dat_in_valid),
                                 .dat_i(dat_in), .dat_ready_o(dat_in_ready),
-                                .dat_o(dat_out), .dat_valid_o(dat_out_valid),
-                                .clk(d.clk),.rst(d.rst),
-															  .*);
+                                .dat_o(out_out), .dat_valid_o(out_out_valid),
+                                .out_ready_i(out_out_ready),
+                                .out_write_o(out_write),
+                                .out_eof_o(out_out_eof),
+                                .out_write_counter_o(out_write_counter),
+                                .key_i(), .key_valid_i(),
+                                .led_proc_o(led_proc_o),
+                                .clk(d.clk), .rst(d.rst));
     
     keyboard_driver keyboard (.char_o(key_char_out),
                              .char_valid_o(key_char_out_valid),

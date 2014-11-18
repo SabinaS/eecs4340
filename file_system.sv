@@ -5,6 +5,7 @@ module file_system (
 
 	input valid_i,
 	input [31:0] data_i,
+	input ready_i,
 	input eof_i,
 
 	input read_i,

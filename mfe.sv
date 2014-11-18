@@ -25,9 +25,6 @@ module mfe (mfe_ifc.dut d);
     input               d.ps2_dat;
     */
     // The spi clk is bundled with the SPI communication array
-    assign d.dat_spi_card_o[0] = d.spi_clk;
-    assign d.key_spi_card_o[0] = d.spi_clk;
-    assign d.out_spi_card_o[0] = d.spi_clk;
 
     // The file system wires follow exactly the same format
     // The dat_fs wires
@@ -119,7 +116,7 @@ module mfe (mfe_ifc.dut d);
                                 .dat_read_o(dat_in_ready),
                                 .clk(d.clk), .rst(d.rst), .key_ready_o(),
                                 .dat_ready_o(), .ps2_ready_o(), .key_read_o(),
-                                .key_o(), .key_valid_o(),
+                                .key_o(), .key_valid_o(key_in_valid),
                                 .led_pass_o(led_pass_o),
                                 .led_fail_o(led_fail_o));
 

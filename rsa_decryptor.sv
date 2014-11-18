@@ -24,12 +24,17 @@ module rsa_decryptor(
 	input [15:0] ps2_i; 
 	// key_ready_o: backpressure to the key fs telling it to stall reading
 	// dat_ready_o: backpressure to the data fs telling it to stall reading
-	// ps2_ready_o: backpressure to the keyboard telling it not to send data it
+	// ps2_ready_o: backpressure to the keyboard telling it not to send data. it
 	//  is currently ignored
 	output key_ready_o, dat_ready_o, ps2_ready_o;
+	// key_read_o: the read operation signal to the key_fs
+	// dat_read_o: the read operation signale to the dat_fs
 	output key_read_o, dat_read_o;
+	// key_o: data to the aes decryption module
 	output [31:0] key_o;
+	// whether the data on key_o is valid
 	output key_valid_o;
+	// Status signals to the status block
 	output led_pass_o, led_fail_o;
 
 endmodule

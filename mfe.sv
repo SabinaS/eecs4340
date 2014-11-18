@@ -36,7 +36,9 @@ module mfe (mfe_ifc.dut d);
     wire                dat_in_eof, dat_in_valid, dat_in_ready;
     // The data to the SD card
     wire [31:0]         dat_out;
-    // Information about data to the sd card
+    // Information about data to the sd card, except for dat_out_ready, which
+    // indicates to the producer that the FS module cannot accpet input the
+    // next cycle
     wire                dat_out_ready, dat_out_valid, dat_out_eof;
     // Command wires
     wire                dat_read, dat_write, dat_write_counter;
@@ -59,11 +61,14 @@ module mfe (mfe_ifc.dut d);
     wire                out_led_done;
     
     // RSA wires
-    wire led_pass_o, led_fail_o;
-    
+    wire                dat_in_ready_rsa;
+    wire                led_pass_o, led_fail_o;
+    wire [31:0]         rsa_data;
+    wire                rsa_data_valid;
 
     // AES wires
-    wire led_proc_o;
+    wire                dat_in_ready_aes;
+    wire                led_proc_o;
     
     // The PS/2 module wires (a small set for communication)
     wire [15:0]         key_char_out;
@@ -71,6 +76,16 @@ module mfe (mfe_ifc.dut d);
     
     // The status led logics, for the two combinational inputs
     logic               stat_ready, stat_done_failed;
+    
+    // Combinational logic
+    // The data fs should stall if the AES or RSA module cannot accept input
+    assign dat_in_ready = dat_in_ready_rsa | dat_in_ready_aes;
+    assign stat_ready = led_pass_o;
+    // We failed overall if we're not processing and we're not ready. Don't
+    //  indicate an overall failure if we just input the passphrase wrong.
+    //  Also, the status module needs to determine if this is the first time
+    //  the system has run, which would be signified by stat_ready.
+    assign stat_done_failed = !stat_ready & !led_proc_o & !led_fail_o;
     
     file_system dat_fs  (.to_slave_o(d.dat_spi_card_o),
                          .from_slave_i(d.dat_spi_card_i), .data_i(dat_out),
@@ -114,22 +129,24 @@ module mfe (mfe_ifc.dut d);
                                 .dat_i(dat_in),
                                 .ps2_i(key_char_out),
                                 .dat_read_o(dat_in_ready),
-                                .clk(d.clk), .rst(d.rst), .key_ready_o(key_in_ready),
-                                .dat_ready_o(), .ps2_ready_o(), .key_read_o(),
-                                .key_o(), .key_valid_o(),
+                                .clk(d.clk), .rst(d.rst),
+                                .key_ready_o(key_in_ready),
+                                .dat_ready_o(dat_in_ready_rsa), .ps2_ready_o(),
+                                .key_read_o(key_in_read), .key_o(rsa_data),
+                                .key_valid_o(rsa_data_valid),
                                 .led_pass_o(led_pass_o),
                                 .led_fail_o(led_fail_o));
 
     aes_decryptor file_decrypt (.dat_valid_i(dat_in_valid),
-                                .dat_i(dat_in), .dat_ready_o(dat_in_ready),
+                                .dat_i(dat_in), .dat_ready_o(dat_in_ready_aes),
                                 .dat_o(out_out), .dat_valid_o(out_out_valid),
                                 .out_ready_i(out_out_ready),
                                 .out_write_o(out_write),
                                 .out_eof_o(out_out_eof),
                                 .out_write_counter_o(out_write_counter),
-                                .led_proc_o(led_proc_o),
-                                .key_i(), .key_valid_i(),
-                                .clk(d.clk), .rst(d.rst));
+                                .led_proc_o(led_proc_o), .key_i(rsa_data),
+                                .key_valid_i(rsa_data_valid), .clk(d.clk),
+                                .rst(d.rst));
     
     keyboard_driver keyboard (.char_o(key_char_out),
                              .char_valid_o(key_char_out_valid),

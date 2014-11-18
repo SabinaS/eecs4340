@@ -1,3 +1,4 @@
+`timescale 1ns/1ns
 module aes_decryptor(
 	clk, rst,
 	key_i, key_valid_i, 

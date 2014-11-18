@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 interface mfe_ifc(input bit clk);
 
 	logic               rst;

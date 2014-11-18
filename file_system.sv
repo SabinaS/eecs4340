@@ -23,7 +23,8 @@ module file_system (
 	output [2:0] to_slave_o,
 	input from_slave_i,
 
-	output led_done_o
+	output led_done_o,
+	output has_card_o
 );
 
 endmodule

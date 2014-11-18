@@ -42,22 +42,23 @@ module mfe (mfe_ifc.dut d);
     wire                dat_out_ready, dat_out_valid, dat_out_eof;
     // Command wires
     wire                dat_read, dat_write, dat_write_counter;
-    // Command status (if it's currently reading or writing to the SD card)
-    wire                dat_reading, dat_writing;
+    // Command status (if it's currently reading or writing to the SD card),
+    //  dat_has_card signifies if an sd_card is present.
+    wire                dat_reading, dat_writing, dat_has_card;
     // The key_fs wires
     wire [31:0]         key_in;
     wire                key_in_eof, key_in_valid, key_in_ready;
     wire [31:0]         key_out;
     wire                key_out_ready, key_out_valid, key_out_eof;
     wire                key_read, key_write, key_write_counter;
-    wire                key_reading, key_writing;
+    wire                key_reading, key_writing, key_has_card;
     // The out_fs wires
     wire [31:0]         out_in;
     wire                out_in_eof, out_in_valid, out_in_ready;
     wire [31:0]         out_out;
     wire                out_out_ready, out_out_valid, out_out_eof;
     wire                out_read, out_write, out_write_counter;
-    wire                out_reading, out_writing;
+    wire                out_reading, out_writing, out_has_card;
     wire                out_led_done;
     
     // RSA wires
@@ -80,7 +81,7 @@ module mfe (mfe_ifc.dut d);
     // Combinational logic
     // The data fs should stall if the AES or RSA module cannot accept input
     assign dat_in_ready = dat_in_ready_rsa | dat_in_ready_aes;
-    assign stat_ready = led_pass_o;
+    assign stat_ready = key_has_card & dat_has_card & out_has_card;
     // We failed overall if we're not processing and we're not ready. Don't
     //  indicate an overall failure if we just input the passphrase wrong.
     //  Also, the status module needs to determine if this is the first time
@@ -96,7 +97,7 @@ module mfe (mfe_ifc.dut d);
                          .write_counter_i(dat_write_counter),
                          .ready_i(dat_in_ready),
                          .writing_o(dat_writing),
-                         .reading_o(dat_reading),
+                         .reading_o(dat_reading), .has_card_o(dat_has_card),
                          .clk(d.clk), .rst(d.rst), .led_done_o());
     file_system key_fs  (.to_slave_o(d.key_spi_card_o),
                          .from_slave_i(d.key_spi_card_i), .data_i(key_out),
@@ -107,7 +108,7 @@ module mfe (mfe_ifc.dut d);
                          .write_counter_i(key_write_counter),
                          .ready_i(key_in_ready),
                          .writing_o(key_writing),
-                         .reading_o(key_reading),
+                         .reading_o(key_reading), .has_card_o(key_has_card),
                          .clk(d.clk), .rst(d.rst), .led_done_o());
     file_system out_fs  (.to_slave_o(d.out_spi_card_o),
                          .from_slave_i(d.out_spi_card_i), .data_i(out_out),
@@ -118,7 +119,7 @@ module mfe (mfe_ifc.dut d);
                          .ready_i(out_in_ready),
                          .write_counter_i(out_write_counter),
                          .writing_o(out_writing),
-                         .reading_o(out_reading),
+                         .reading_o(out_reading), .has_card_o(out_has_card),
                          .led_done_o(out_led_done),
                          .clk(d.clk), .rst(d.rst));
     

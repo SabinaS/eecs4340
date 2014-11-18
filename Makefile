@@ -5,10 +5,10 @@ MFE_DUT=mfe.sv
 MFE_OUTPUT=mfetestbench.exe
 
 MODULES = file_system.sv \
-					rsa_decryptor.sv \
-					aes_decryptor.sv \
-					keyboard_drive.sv \
-					status_driver.sv
+		rsa_decryptor.sv \
+		aes_decryptor.sv \
+		keyboard_drive.sv \
+		status_driver.sv
 
 .PHONY: all
 all: mfebench

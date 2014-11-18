@@ -93,18 +93,17 @@ program mfe_tb (mfe_ifc.bench ds);
 	// Iterate iter number of cycles 
 	repeat (v.iter) begin
 	v.randomize();
-	if(reset) begin
+	if(v.get_reset()) begin
 	    ds.cb.rst <= 1'b1;
 	    $display("%t : %s \n", $realtime, "Driving Reset");
 	end else begin
 		ds.cb.rst <= 1'b0;
 		// TODO later
 	end
-	end
 
 	@(ds.cb);
 
-	if(reset) begin
+	if(v.get_reset()) begin
 		$display("%t : %s \n", $realtime,t.check_reset(ds.cb.status_leds, 
 			ds.cb.dat_spi_card_o, ds.cb.key_spi_card_o, 
 			ds.cb.ps2_dat)?"Pass-reset":"Fail-reset");
@@ -112,6 +111,7 @@ program mfe_tb (mfe_ifc.bench ds);
             
             
         //TODO: Test whether results are as expected (golden_output)
+	end
         
     end
 endprogram

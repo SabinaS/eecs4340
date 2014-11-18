@@ -2,13 +2,22 @@ class transaction;
     // vars
     
     // Checking the reset functionality
-    function bit check_reset(status_leds, dat_card, key_card, out_card);
+    function bit check_reset(wire [6:0] status_leds, logic [2:0] dat_spi_card_o, 
+    	logic [2:0] key_spi_card_o, logic ps2_dat);
+    	
+    	status_leds = '0; 
+    	dat_spi_card_o = '0;
+    	key_spi_card_o = '0; 
+    	ps2_dat = '0; 
+    	
+    	return((status_leds == '0) && (dat_spi_card_o == '0) && (key_spi_card_o == '0) 
+    		&& (ps2_dat == '0));
         
     endfunction 
     
     
     function void golden_result();
-    
+    	// TODO later
     endfunction
     
     
@@ -69,34 +78,43 @@ program tb (mfe.bench ds);
     bit reset; 
     
     initial begin
-            t = new();
-            v = new();
-            v.read_config("config.txt");
+	t = new();
+	v = new();
+	v.read_config("config.txt");
+
+	// Drive inputs for next cycles
+	ds.cb.rst <= t.reset; 
+
+
+	repeat(10) begin
+	ds.cb.reset <= 1'b1;
+	@(ds.cb);
+	end
+	ds.cb.reset <= 1'b0;
+	@(ds.cb);
+
+	// Iterate iter number of cycles 
+	repeat (v.iter) begin
+	v.randomize();
+	if(reset) begin
+	    ds.cb.reset <= 1'b1;
+	    $display("%t : %s \n", $realtime, "Driving Reset");
+	end else begin
+		ds.cb.reset <= 1'b0;
+		// TODO later
+	end
+	end
+
+	@(ds.cb);
+
+	if(reset) begin
+		$display("%t : %s \n", $realtime,t.check_reset(ds.cb.status_leds, 
+			ds.cb.dat_spi_card_o, ds.cb.key_spi_card_o, 
+			ds.cb.ps2_dat)?"Pass-reset":"Fail-reset");
+	end 
             
-            // Drive inputs for next cycles
-            ds.cb.rst <= t.reset; 
             
-            
-            repeat(10) begin
-                ds.cb.reset <= 1'b1;
-                @(ds.cb);
-            end
-            ds.cb.reset <= 1'b0;
-            @(ds.cb);
-            
-            // Iterate iter number of cycles 
-            repeat (v.iter) begin
-                v.randomize();
-                if(reset) begin
-                    ds.cb.reset <= 1'b1;
-                    $display("%t : %s \n", $realtime, "Driving Reset");
-                end else begin
-                        ds.cb.reset <= 1'b0;
-                        //READ/DECRYPT stuff
-                end
-            end
-            
-            //Test whether results are as expected (golden_output)
+        //TODO: Test whether results are as expected (golden_output)
         
     end
 endprogram

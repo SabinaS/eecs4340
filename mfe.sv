@@ -114,9 +114,9 @@ module mfe (mfe_ifc.dut d);
                                 .dat_i(dat_in),
                                 .ps2_i(key_char_out),
                                 .dat_read_o(dat_in_ready),
-                                .clk(d.clk), .rst(d.rst), .key_ready_o(),
+                                .clk(d.clk), .rst(d.rst), .key_ready_o(key_in_ready),
                                 .dat_ready_o(), .ps2_ready_o(), .key_read_o(),
-                                .key_o(), .key_valid_o(key_in_valid),
+                                .key_o(), .key_valid_o(),
                                 .led_pass_o(led_pass_o),
                                 .led_fail_o(led_fail_o));
 

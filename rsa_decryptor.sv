@@ -16,9 +16,16 @@ module rsa_decryptor(
 	// dat_valid_i, the in from the dat_fs is valid
 	// ps2_valid_i, the character from the keyboard module is valid
 	input key_valid_i, dat_valid_i, ps2_valid_i;
+	// The data from key_fs
 	input [31:0] key_i;
+	// The data from the dat_fs
 	input [31:0] dat_i;
+	// The data from the keyboard
 	input [15:0] ps2_i; 
+	// key_ready_o: backpressure to the key fs telling it to stall reading
+	// dat_ready_o: backpressure to the data fs telling it to stall reading
+	// ps2_ready_o: backpressure to the keyboard telling it not to send data it
+	//  is currently ignored
 	output key_ready_o, dat_ready_o, ps2_ready_o;
 	output key_read_o, dat_read_o;
 	output [31:0] key_o;

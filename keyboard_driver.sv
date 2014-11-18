@@ -6,7 +6,7 @@ module keyboard_driver(
 	output [15:0] char_o,
 	output char_valid_o,
 
-	inout ps2_dat,
+	inout ps2_dat
 );
 
 endmodule

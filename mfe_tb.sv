@@ -2,7 +2,7 @@ class transaction;
     // vars
     
     // Checking the reset functionality
-    function bit check_reset(wire [6:0] status_leds, logic [2:0] dat_spi_card_o, 
+    function bit check_reset(logic [6:0] status_leds, logic [2:0] dat_spi_card_o, 
     	logic [2:0] key_spi_card_o, logic ps2_dat);
     	
     	status_leds = '0; 

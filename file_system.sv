@@ -20,7 +20,9 @@ module file_system (
 	output reading_o,
 
 	output [2:0] to_slave_o,
-	input from_slave_i
+	input from_slave_i,
+
+	output led_done_o
 );
 
 endmodule

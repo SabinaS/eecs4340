@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module rsa_decryptor(
 	clk, rst,
 	key_i, key_valid_i, key_ready_o,

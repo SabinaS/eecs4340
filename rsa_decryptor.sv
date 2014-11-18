@@ -12,6 +12,7 @@ module rsa_decryptor(
 	//ps2 -> keyboard
 	//dat -> data block
 	input clk, rst;
+	// 
 	input key_valid_i, dat_valid_i, ps2_valid_i;
 	input [31:0] key_i;
 	input [31:0] dat_i;

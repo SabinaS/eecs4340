@@ -130,25 +130,21 @@ module mfe (mfe_ifc.dut d);
                                 .out_write_o(out_write),
                                 .out_eof_o(out_out_eof),
                                 .out_write_counter_o(out_write_counter),
-                                .key_i(), .key_valid_i(),
                                 .led_proc_o(led_proc_o),
+                                .key_i(), .key_valid_i(),
                                 .clk(d.clk), .rst(d.rst));
     
     keyboard_driver keyboard (.char_o(key_char_out),
                              .char_valid_o(key_char_out_valid),
-                             .clk(d.clk),
-														 .ps2_clk(d.ps2_clk),
-														 .ps2_dat(d.ps2_dat),
-													   .*);
+                             .clk(d.clk), .ps2_clk(d.ps2_clk),
+                             .ps2_dat(d.ps2_dat));
     
     status_driver status   (.pass_failed_i(led_fail_o),
                             .pass_passed_i(led_pass_o),
                             .done_failed_i(stat_done_failed),
                             .done_passed_i(out_led_done),
                             .processing_i(led_proc_o),
-                            .ready_i(stat_ready),
-														.rst(d.rst),
-														.status_leds(d.status_leds),
-													  .*);
+                            .ready_i(stat_ready), .rst(d.rst),
+									 .status_leds(d.status_leds));
 
 endmodule

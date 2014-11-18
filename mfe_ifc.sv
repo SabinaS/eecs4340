@@ -14,7 +14,7 @@ interface mfe_ifc(input bit clk);
 	logic								out_spi_card_i;
 
 	logic								ps2_clk;
-	logic								ps2_dat;
+	wire 								ps2_dat;
 
 
 	// note that the outputs and inputs are reversed from the dut

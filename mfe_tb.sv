@@ -1,5 +1,6 @@
 class transaction;
     // vars
+		rand bit reset;
     
     // Checking the reset functionality
     function bit check_reset(logic [6:0] status_leds, logic [2:0] dat_spi_card_o, 
@@ -56,10 +57,6 @@ class testing_env;
         end
     endfunction
 
-    function bit get_read();
-        return((rn%1000)<read_thresh);
-    endfunction
-
     function bit get_reset();
         return((rn%1000)<reset_thresh);
     endfunction
@@ -75,7 +72,7 @@ program mfe_tb (mfe_ifc.bench ds);
     testing_env v;
     
     int failures = 0; 
-    bit reset; 
+		bit reset;
     
     initial begin
 	t = new();
@@ -87,20 +84,20 @@ program mfe_tb (mfe_ifc.bench ds);
 
 
 	repeat(10) begin
-	ds.cb.reset <= 1'b1;
+	ds.cb.rst <= 1'b1;
 	@(ds.cb);
 	end
-	ds.cb.reset <= 1'b0;
+	ds.cb.rst <= 1'b0;
 	@(ds.cb);
 
 	// Iterate iter number of cycles 
 	repeat (v.iter) begin
 	v.randomize();
 	if(reset) begin
-	    ds.cb.reset <= 1'b1;
+	    ds.cb.rst <= 1'b1;
 	    $display("%t : %s \n", $realtime, "Driving Reset");
 	end else begin
-		ds.cb.reset <= 1'b0;
+		ds.cb.rst <= 1'b0;
 		// TODO later
 	end
 	end

@@ -69,7 +69,7 @@ endclass
 
 
 
-program tb (mfe_ifc.bench ds);
+program mfe_tb (mfe_ifc.bench ds);
 
     transaction t; 
     testing_env v;

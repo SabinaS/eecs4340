@@ -10,6 +10,7 @@ module file_system (
 
 	input read_i,
 	input write_i,
+	input write_counter_i,
 
 	output valid_o,
 	output [31:0] data_o,

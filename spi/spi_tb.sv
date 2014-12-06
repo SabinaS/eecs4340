@@ -3,16 +3,16 @@ class transaction;
 		rand bit reset;
     
     // Checking the reset functionality
-    function bit check_reset(logic [6:0] status_leds, logic [2:0] dat_spi_card_o, 
-    	logic [2:0] key_spi_card_o, logic ps2_dat);
+    function bit check_reset(logic [2:0] to_slave_o, logic ready_o,
+    	logic valid_o, logic ack_o, logic dat);
     	
-    	status_leds = '0; 
-    	dat_spi_card_o = '0;
-    	key_spi_card_o = '0; 
-    	ps2_dat = '0; 
+    	to_slave_o = '0; 
+    	ready_o = '0;
+    	valid_o = '0; 
+    	ack_o = '0; 
     	
-    	return((status_leds == '0) && (dat_spi_card_o == '0) && (key_spi_card_o == '0) 
-    		&& (ps2_dat == '0));
+    	return((to_slave_o == '0) && (ready_o == '0) && (valid_o == '0) 
+    		&& (ack_o == '0) && (dat == '0));
         
     endfunction 
     
@@ -66,7 +66,7 @@ endclass
 
 
 
-program mfe_tb (mfe_ifc.bench ds);
+program spi_tb (spi_ifc.bench ds);
 
     transaction t; 
     testing_env v;
@@ -104,9 +104,9 @@ program mfe_tb (mfe_ifc.bench ds);
 	@(ds.cb);
 
 	if(v.get_reset()) begin
-		$display("%t : %s \n", $realtime,t.check_reset(ds.cb.status_leds, 
-			ds.cb.dat_spi_card_o, ds.cb.key_spi_card_o, 
-			ds.cb.ps2_dat)?"Pass-reset":"Fail-reset");
+		$display("%t : %s \n", $realtime,t.check_reset(ds.cb.to_slave_o, 
+			ds.cb.ready_o, ds.cb.valid_o, ds.cb.ack_o,
+            ds.cb.dat) ? "Pass-reset" : "Fail-reset");
 	end 
             
             

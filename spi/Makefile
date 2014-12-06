@@ -2,7 +2,8 @@ SPI_TOP = spi_top.sv
 SPI_BENCH = spi_tb.sv
 SPI_OUTPUT = spitestbench.exe
 
-MODULES = spi_read.sv
+MODULES = spi_read.sv \
+			spi_ifc.sv
 
 .PHONY: all
 all: spibench

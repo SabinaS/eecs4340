@@ -4,10 +4,12 @@ module spi_top (
     to_slave_o, dat, valid_o, ready_o, ack_o,
     from_slave_i, read_i, write_i, valid_i, ready_i
 );
-parameter       CLK_MHZ = 50;
-parameter       SPI_CYCLE_INIT = (CLK_MHZ * 1000000) / 400000;
-parameter       SPI_CYCLE_INIT_WIDTH = $clog2(SPI_CYCLE_INIT);
-parameter       BUS_WIDTH = 128;
+parameter CLK_MHZ = 50;
+parameter BUS_WIDTH = 128;
+parameter SPI_CYCLE_INIT = (CLK_MHZ * 1000000) / 400000;
+parameter SPI_CYCLE_INIT_WIDTH = $clog2(SPI_CYCLE_INIT);
+parameter MILLISECOND_MHZ = (CLK_MHZ * 1000000) * (1 / 1000);
+parameter MILLISECOND_MHZ_WIDTH = $clog2(MILLISECOND_MHZ);
 
 /* the clock and reset signals */
 input clk, rst;
@@ -46,14 +48,16 @@ logic init, read, write;
 logic [6:0] spi_counter;
 // For configuring the clock speed of the module. Since the lowest
 logic [SPI_CYCLE_INIT_WIDTH-1:0] ss_divider;
+logic [MILLISECOND_MHZ_WIDTH-1:0] ms_waiter;
 
+// The behavior
 always_ff @(posedge clk) begin
     if (rst) begin
         sclk <= '0;
         mosi <= '0;
         ss <= '0;
         ss_divider <= '0;
-        spi_counter <= '0;
+        ms_waiter <= '0;
         init <= '1;
         read <= '0;
         write <= '0;
@@ -61,9 +65,10 @@ always_ff @(posedge clk) begin
     
     // Initialization
     if (init) begin
-        
+        // Phase 1: Wait a full millisecond
+        if (ms_waiter != '1)
+            ms_waiter <= ms_waiter + 1'b1;
     end
 end
 
 endmodule
-

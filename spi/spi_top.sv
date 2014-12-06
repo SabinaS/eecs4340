@@ -62,7 +62,7 @@ always_ff @(posedge clk) begin
         read <= '0;
         write <= '0;
     end else begin
-    
+    end
     // Initialization
     if (init) begin
         // Phase 1: Wait a full millisecond

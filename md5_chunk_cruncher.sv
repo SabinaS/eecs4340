@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module md5_chunk_cruncher (
     input logic clk,
     input logic reset,

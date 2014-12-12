@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module md5_leftrotate (
     input  logic [31:0] rotin,
     input  logic [4:0]  rotby,

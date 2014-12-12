@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module md5_fcalc (
     input logic [1:0] sel,
     input logic [31:0] b,

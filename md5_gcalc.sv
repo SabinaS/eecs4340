@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module md5_gcalc (
     input logic  [5:0] i,
     output logic [3:0] g

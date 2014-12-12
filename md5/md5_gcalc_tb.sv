@@ -21,4 +21,11 @@ initial begin
     #20000 assert (g == 6'd12);
 end
 
+
+initial  begin
+ $display("i\tg");
+ $monitor("%h,%h", i, g);
+end
+
+
 endmodule

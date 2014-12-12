@@ -22,7 +22,7 @@ always_comb begin
             doshift <= 1'b0;
             sub <= 1'b0;
             shiftby <= 2'b0;
-            addon = 3'd0;
+            addon <= 3'd0;
         end
         // 16 <= i <= 31
         2'b01: begin

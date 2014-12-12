@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module md5unit (
+module md5 (
     input logic clk,
     input logic [1:0] reset,
     input logic [1:0] start,

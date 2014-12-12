@@ -79,7 +79,7 @@ assign done = (stage == FINISHED);
 
 logic  [1:0] step;
 
-always @(*) begin
+always_ff @(posedge clk) begin
     if (stage == CRUNCH) begin
         case (step)
             2'b00: begin
@@ -124,7 +124,7 @@ always @(*) begin
     end
 end
 
-always @(posedge clk) begin
+always_ff @(posedge clk) begin
     if (reset) begin
         a0 <= INITA;
         b0 <= INITB;

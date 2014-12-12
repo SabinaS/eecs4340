@@ -143,6 +143,7 @@ module rsa_decryptor(
 					/* Error --> reset */
 					state <= 3'b000;
 				end
+			endcase
 		end
 	end
 

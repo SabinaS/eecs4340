@@ -12,7 +12,8 @@ logic   [2:0] addon;
 
 logic  [3:0] shift_res = (doshift) ? i[3:0] << shiftby : 4'b0;
 logic [3:0] mult_res = (sub) ? shift_res - i[3:0] : shift_res + i[3:0];
-assign g = mult_res + addon;
+//assign g = mult_res + addon;
+assign g = i[3:0];
 
 always_comb begin
     case (i[5:4])

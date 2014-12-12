@@ -1,19 +1,19 @@
 `timescale 1ns/1ns
 
 module md5_chunk_cruncher (
-    input logic clk,
-    input logic reset,
-    input logic start,
-    output logic done,
+    input clk,
+    input reset,
+    input start,
+    output done,
 
-    output logic [127:0] digest,
+    output [127:0] digest,
 
-    output logic [5:0]  iaddr,
-    input  logic [31:0] kdata,
-    input  logic [4:0]  sdata,
+    output [5:0]  iaddr,
+    input  [31:0] kdata,
+    input  [4:0]  sdata,
 
-    output logic [3:0]  gaddr,
-    input  logic [31:0] mdata
+    output [3:0]  gaddr,
+    input  [31:0] mdata
 );
 
 parameter INITA = 32'h67452301;
@@ -21,36 +21,36 @@ parameter INITB = 32'hefcdab89;
 parameter INITC = 32'h98badcfe;
 parameter INITD = 32'h10325476;
 
-logic  [31:0] a0;
-logic  [31:0] b0;
-logic  [31:0] c0;
-logic  [31:0] d0;
+reg [31:0] a0;
+reg [31:0] b0;
+reg [31:0] c0;
+reg [31:0] d0;
 
-logic  [31:0] areg;
-logic [31:0] breg;
-logic  [31:0] creg;
-logic  [31:0] dreg;
+reg [31:0] areg;
+reg [31:0] breg;
+reg [31:0] creg;
+reg [31:0] dreg;
 
 assign digest = {d0, c0, b0, a0};
 
-logic  [5:0] ireg;
+reg [5:0] ireg;
 
-logic  [31:0] f;
-logic  [31:0] freg;
+wire [31:0] f;
+reg  [31:0] freg;
 
-logic   [31:0] adda;
-logic  [31:0] addb;
-logic  [31:0] adds = adda + addb;
+reg  [31:0] adda;
+reg  [31:0] addb;
+wire [31:0] adds = adda + addb;
 
-logic  [31:0] t0;
-logic  [31:0] t1;
+reg [31:0] t0;
+reg [31:0] t1;
 
-logic  [31:0] rotated;
+wire [31:0] rotated;
 
-logic  [31:0] inext = ireg + 1'b1;
+wire [5:0] inext = ireg + 1'b1;
 assign iaddr = ireg;
 
-md5_fcalc fc (
+fcalc fc (
     .sel (ireg[5:4]),
     .b (breg),
     .c (creg),
@@ -58,12 +58,12 @@ md5_fcalc fc (
     .f (f)
 );
 
-md5_gcalc gc (
+gcalc gc (
     .i (ireg),
     .g (gaddr)
 );
 
-md5_leftrotate lr (
+leftrotate lr (
     .rotin (t0),
     .rotby (sdata),
     .rotout (rotated)
@@ -73,13 +73,13 @@ parameter CRUNCH   = 2'b00;
 parameter FINALIZE = 2'b01;
 parameter FINISHED = 2'b10;
 
-logic  [1:0] stage;
+reg [1:0] stage;
 
 assign done = (stage == FINISHED);
 
-logic  [1:0] step;
+reg [1:0] step;
 
-always_ff @(posedge clk) begin
+always @(*) begin
     if (stage == CRUNCH) begin
         case (step)
             2'b00: begin
@@ -124,7 +124,7 @@ always_ff @(posedge clk) begin
     end
 end
 
-always_ff @(posedge clk) begin
+always @(posedge clk) begin
     if (reset) begin
         a0 <= INITA;
         b0 <= INITB;

@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 
 module md5_gcalc (
-    input logic  [5:0] i,
+    input logic [5:0] i,
     output logic [3:0] g
 );
 
@@ -22,7 +22,7 @@ always_comb begin
             doshift <= 1'b0;
             sub <= 1'b0;
             shiftby <= 2'b0;
-            addon <= 3'd0;
+            addon = 3'd0;
         end
         // 16 <= i <= 31
         2'b01: begin

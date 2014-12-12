@@ -2,8 +2,8 @@
 
 module gcalc_tb ();
 
-reg [5:0] i;
-wire [3:0] g;
+logic [5:0] i;
+logic [3:0] g;
 
 md5_gcalc gc (
     .i (i),

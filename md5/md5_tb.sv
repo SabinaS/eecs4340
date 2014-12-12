@@ -71,6 +71,7 @@ initial begin
 
     #5200000 assert(done0 == 1'b1);
     assert(digest0 == expected);
+    $finish;
 end
 
 endmodule

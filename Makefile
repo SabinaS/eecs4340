@@ -24,7 +24,7 @@ mfebench:
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(MFE_TOP) $(MFE_INTERFACE) $(MFE_BENCH) $(MFE_DUT) $(MODULES) -o $(MFE_OUTPUT) 
 
 md5bench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice md5*.sv memory/*bb.v -o md5testbench.exe 
+	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice md5/*.sv memory/*.sv memory/altsyncram.v -o md5testbench.exe 
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd

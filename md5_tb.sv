@@ -19,7 +19,7 @@ wire [127:0] digest1;
 wire done1;
 wire done0;
 
-md5unit md5 (
+md5 md5 (
     .clk (clk),
     .reset ({1'b0, reset}),
     .start ({1'b0, start}),

@@ -5,7 +5,7 @@ module gcalc_tb ();
 reg [5:0] i;
 wire [3:0] g;
 
-gcalc gc (
+md5_gcalc gc (
     .i (i),
     .g (g)
 );

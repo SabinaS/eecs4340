@@ -1,32 +1,32 @@
 module md5unit (
-    input clk,
-    input [1:0] reset,
-    input [1:0] start,
+    input logic clk,
+    input logic [1:0] reset,
+    input logic [1:0] start,
 
-    input write,
-    input [31:0] writedata,
-    input [4:0]  writeaddr,
+    input logic write,
+    input logic [31:0] writedata,
+    input logic [4:0]  writeaddr,
 
-    output [127:0] digest0,
-    output [127:0] digest1,
+    output logic [127:0] digest0,
+    output logic [127:0] digest1,
 
-    output [1:0] done
+    output logic [1:0] done
 );
 
-wire [1:0] m_write;
+logic [1:0] m_write;
 assign m_write[0] = write && !writeaddr[4];
 assign m_write[1] = write && writeaddr[4];
 
-wire [5:0] cc_iaddr [1:0];
-wire [3:0] cc_gaddr [1:0];
+logic [5:0] cc_iaddr [1:0];
+logic [3:0] cc_gaddr [1:0];
 
-wire [127:0] cc_digest [1:0];
+logic [127:0] cc_digest [1:0];
 assign digest0 = cc_digest[0];
 assign digest1 = cc_digest[1];
 
-wire [31:0] cc_mdata [1:0];
-wire [4:0]  cc_sdata [1:0];
-wire [31:0] cc_kdata [1:0];
+logic [31:0] cc_mdata [1:0];
+logic [4:0]  cc_sdata [1:0];
+logic [31:0] cc_kdata [1:0];
 
 genvar i;
 generate

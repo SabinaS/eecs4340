@@ -1,15 +1,15 @@
 module md5_gcalc (
-    input  [5:0] i,
-    output [3:0] g
+    input logic  [5:0] i,
+    output logic [3:0] g
 );
 
-reg doshift;
-reg sub;
-reg  [1:0] shiftby;
-reg  [2:0] addon;
+logic  doshift;
+logic  sub;
+logic   [1:0] shiftby;
+logic   [2:0] addon;
 
-wire [3:0] shift_res = (doshift) ? i[3:0] << shiftby : 4'b0;
-wire [3:0] mult_res = (sub) ? shift_res - i[3:0] : shift_res + i[3:0];
+logic  [3:0] shift_res = (doshift) ? i[3:0] << shiftby : 4'b0;
+logic [3:0] mult_res = (sub) ? shift_res - i[3:0] : shift_res + i[3:0];
 assign g = mult_res + addon;
 
 always @(*) begin

@@ -1,14 +1,14 @@
 `timescale 1ns/1ns
 
 module md5_fcalc (
-    input logic [1:0] sel,
-    input logic [31:0] b,
-    input logic [31:0] c,
-    input logic [31:0] d,
-    output logic  [31:0] f
+    input [1:0] sel,
+    input [31:0] b,
+    input [31:0] c,
+    input [31:0] d,
+    output reg [31:0] f
 );
 
-always_comb begin
+always @(*) begin
     case (sel)
         // 0 <= i <= 15
         2'b00: f <= (b & c) | (~b & d);

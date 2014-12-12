@@ -31,4 +31,4 @@ wave:
 	gtkwave waveform.vcd &
 
 clean:
-	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *exe *.key
+	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *exe *.key *.exe.vdb

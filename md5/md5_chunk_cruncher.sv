@@ -50,7 +50,7 @@ wire [31:0] rotated;
 wire [5:0] inext = ireg + 1'b1;
 assign iaddr = ireg;
 
-fcalc fc (
+md5_fcalc fc (
     .sel (ireg[5:4]),
     .b (breg),
     .c (creg),
@@ -58,12 +58,12 @@ fcalc fc (
     .f (f)
 );
 
-gcalc gc (
+md5_gcalc gc (
     .i (ireg),
     .g (gaddr)
 );
 
-leftrotate lr (
+md5_leftrotate lr (
     .rotin (t0),
     .rotby (sdata),
     .rotout (rotated)

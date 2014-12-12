@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module gcalc (
+module md5_gcalc (
     input  [5:0] i,
     output [3:0] g
 );

@@ -60,6 +60,7 @@ module rsa_decryptor(
 	logic aes_done;
 
 
+	/* STATE MACHINE */
 	always_ff @(posedge clk) begin
 		if(rst) begin
 			state <= 3'b000;
@@ -148,6 +149,60 @@ module rsa_decryptor(
 	end
 
 
+/* For Reference
+	RSA keys 
+	logic [4095:0] exp_enc;
+	logic [4095:0] mod_enc;
+	logic [383:0] aes_for_rsa;
+
+	logic [4095:0] exp;
+	logic [4095:0] mod;
+
+	passphrase 
+	logic [7:0] kbd [55:0]; //56 character max passcode
+
+
+	encrypted AES keys
+	logic [255:0] aes;
+*/
+
+	/* BUFFERS */
+	always_ff @(posedge clk) begin 
+		if(rst) begin
+			exp_enc <= 'b0;
+			mod_enc <= 'b0;
+			exp <= 'b0;
+			mod <= 'b0;
+			kbd <= 'b0;
+			aes <= 'b0;
+		end else begin
+			case(state)
+				3'b000: begin
+					/* buffer encrypted RSA stuff */
+				end
+				3'b001: begin
+					/* keyboard input */
+				end
+				3'b010: begin
+					/* NONE */
+				end
+				3'b011: begin
+					/* NONE */
+				end
+				3'b100: begin
+					/* NONE */
+				end
+				3'b101: begin
+					/* Output Key */
+				end
+				3'b110: begin
+					/* NONE */
+				end
+				3'b111: begin
+					/* error */
+				end
+		end
+	end
 
 
 

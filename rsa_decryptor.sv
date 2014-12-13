@@ -35,9 +35,13 @@ module rsa_decryptor(
 	*/
 
 	/* RSA keys */
+	logic [8575:0] input_buff
 	logic [4095:0] exp_enc;
 	logic [4095:0] mod_enc;
 	logic [383:0] aes_for_rsa;
+	assign exp_enc = input_buff[4095:0];
+	assign mod_enc = input_buff[8191:4096];
+	assign aes_for_rsa = input_buff[8575:8191];
 
 	logic [4095:0] exp;
 	logic [4095:0] mod;
@@ -49,15 +53,23 @@ module rsa_decryptor(
 	/* encrypted AES keys */
 	logic [255:0] aes;
 
+	/* decrypted AES keys */
+	logic [255:0] aes_d;
+
 	/* counts */
 	integer count;
 
 
 	/* AES Submodule */
-	logic aes_kb_done;
-	logic aes_kb_valid;
+	logic aes_kb_done; //AES for kb 
+	logic aes_kb_valid; //AES valid for kb
+	
+	logic aes_done; //done decrypting NECESSARY?
+	logic aes_valid; //data valid
 
-	logic aes_done;
+	logic modexp_done; //modexp done NECESSARY?
+	logic modexp_valid; //modexp valid
+
 
 
 	/* STATE MACHINE */
@@ -91,7 +103,7 @@ module rsa_decryptor(
 					end
 				end
 				3'b010: begin
-					if(aes_kb_done) begin
+					//if(aes_kb_done) begin
 						if(aes_kb_valid) begin
 							led_pass_o <= 1'b1;
 							state <= 3'b011;
@@ -99,7 +111,7 @@ module rsa_decryptor(
 							led_fail_o <=1'b0;
 							state <= 3'b001;
 						end
-					end
+					//end
 				end
 				3'b011: begin
 					if(count == 8) begin
@@ -179,21 +191,39 @@ module rsa_decryptor(
 			case(state)
 				3'b000: begin
 					/* buffer encrypted RSA stuff */
+					if(rsa_valid_i==1'b1) begin
+						input_buff[(count*32 + 32)-1:count*32] = rsa_data_i;
+						count = count + 1;
+					end
 				end
 				3'b001: begin
 					/* keyboard input */
+					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
+						kbd[(8*count)+8-1:(8*count)] = ps2_data_i;
+						count = count + 1;
+					end else if(ps2_valid_i && ps2_reset) begin
+						kbd = 'b0; //reset buffer
+					end
 				end
 				3'b010: begin
 					/* NONE */
 				end
 				3'b011: begin
-					/* NONE */
+					/* Encrypted AES Key */
+					if(aes_valid_i) begin
+						aes[(32*count) + 32 - 1: (32*count)] = aes_data_i;
+						count = count + 1;
+					end
 				end
 				3'b100: begin
 					/* NONE */
 				end
 				3'b101: begin
 					/* Output Key */
+					if(out_ready_i) begin
+						out_data_o <= aes_d[(count*32) + 32 - 1: (count*32)];
+						count = count + 1;
+					end
 				end
 				3'b110: begin
 					/* NONE */

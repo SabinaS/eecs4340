@@ -35,7 +35,7 @@ module rsa_decryptor(
 	*/
 
 	/* RSA keys */
-	logic [8575:0] input_buff
+	logic [8575:0] input_buff; //input buffer
 	logic [4095:0] exp_enc;
 	logic [4095:0] mod_enc;
 	logic [383:0] aes_for_rsa;
@@ -43,18 +43,19 @@ module rsa_decryptor(
 	assign mod_enc = input_buff[8191:4096];
 	assign aes_for_rsa = input_buff[8575:8191];
 
-	logic [4095:0] exp;
-	logic [4095:0] mod;
+
+	logic [4095:0] exp; //output of modexp module
+	logic [4095:0] mod; //output of modexp module
 
 	/* passphrase */
 	logic [7:0] kbd [55:0]; //56 character max passcode
 
 
 	/* encrypted AES keys */
-	logic [255:0] aes;
+	logic [255:0] aes; //buffer
 
 	/* decrypted AES keys */
-	logic [255:0] aes_d;
+	logic [255:0] aes_d; //output of AES module
 
 	/* counts */
 	integer count;
@@ -69,6 +70,12 @@ module rsa_decryptor(
 
 	logic modexp_done; //modexp done NECESSARY?
 	logic modexp_valid; //modexp valid
+
+
+	//assign exp = 
+	//assign mod = 
+	//
+
 
 
 
@@ -231,6 +238,7 @@ module rsa_decryptor(
 				3'b111: begin
 					/* error */
 				end
+			endcase
 		end
 	end
 

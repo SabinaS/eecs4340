@@ -28,28 +28,31 @@ module rsa_decryptor(
 		State 0: Buffering RSA key from FS
 		State 1: Buffering keyboard input
 		State 2: Validate keyboard input
-		State 3: Buffer AES key
-		State 4: ModExp loop
-		State 5: Output AES key
-		State 6: Wait for AES to finish
+		State 3: Decrypt RSA
+		State 4: Buffer AES key
+		State 5: ModExp loop
+		State 6: Output AES key
+		State 7: Wait for AES to finish
 	*/
 
 	/* RSA keys */
 	logic [8575:0] input_buff; //input buffer
 	logic [4095:0] exp_enc;
 	logic [4095:0] mod_enc;
-	logic [383:0] aes_for_rsa;
+	logic [383:0] key_for_rsa;
 	assign exp_enc = input_buff[4095:0];
 	assign mod_enc = input_buff[8191:4096];
-	assign aes_for_rsa = input_buff[8575:8191];
+	assign key_for_rsa = input_buff[8575:8191];
 
-
+	/* aes key to decrypt rsa keys */
+	logic [255:0] aes_for_rsa;
+	logic start_kb_decrypt; 
+	logic start_rsa_decrypt;
 	logic [4095:0] exp; //output of modexp module
 	logic [4095:0] mod; //output of modexp module
 
 	/* passphrase */
-	logic [7:0] kbd [55:0]; //56 character max passcode
-
+	logic [447:0] kbd; //56 character max passcode
 
 	/* encrypted AES keys */
 	logic [255:0] aes; //buffer
@@ -58,7 +61,7 @@ module rsa_decryptor(
 	logic [255:0] aes_d; //output of AES module
 
 	/* counts */
-	integer count;
+	integer count; //register
 
 
 	/* AES Submodule */
@@ -72,10 +75,9 @@ module rsa_decryptor(
 	logic modexp_valid; //modexp valid
 
 
-	//assign exp = 
-	//assign mod = 
-	//
-
+	aes_kb aes_kb_inst(.in_buf(key_for_rsa),.key(aes_for_rsa),.valid(aes_kb_valid), .done(aes_kb_done), .start(start_kb_decrypt), .*);
+	aes_decrypt aes_inst();
+	modexp modexp_inst (.exp(exp), .mod(mod), .key(key), .done(modexp_done), .valid(modexp_valid), .start(start_rsa_decrypt), .*);
 
 
 
@@ -121,8 +123,19 @@ module rsa_decryptor(
 					//end
 				end
 				3'b011: begin
-					if(count == 8) begin
+					/* TODO */
+					if(count == 16) begin
 						state <= 3'b100;
+						count <= 0;
+					end else begin
+						if(aes_done && aes_valid) begin
+							count<=count+1;
+						end
+					end
+				end
+				3'b100: begin
+					if(count == 8) begin
+						state <= 3'b101;
 						count <= 0;
 					end else begin
 						/* TODO */
@@ -131,20 +144,20 @@ module rsa_decryptor(
 						end
 					end
 				end
-				3'b100: begin
+				3'b101: begin
 					/* TODO */
 					/* if AES done */
 					if(aes_done && aes_valid) begin
-						state <= 3'b100;
+						state <= 3'b110;
 						count <= 0;
 					end else begin //undefined behavior
 						state <= 3'b000;
 						count <= 0;
 					end
 				end
-				3'b101: begin
+				3'b110: begin
 					if(count == 8) begin
-						state <= 3'b110;
+						state <= 3'b111;
 						count <= 0;
 					end else begin 
 						/* TODO */
@@ -153,15 +166,11 @@ module rsa_decryptor(
 						end
 					end
 				end
-				3'b110: begin
+				3'b111: begin
 					/* TODO */
 					if(out_ready_i) begin /* ready for next block */
-						state <= 3'b011;
+						state <= 3'b100;
 					end
-				end
-				3'b111: begin
-					/* Error --> reset */
-					state <= 3'b000;
 				end
 			endcase
 		end
@@ -180,7 +189,6 @@ module rsa_decryptor(
 	passphrase 
 	logic [7:0] kbd [55:0]; //56 character max passcode
 
-
 	encrypted AES keys
 	logic [255:0] aes;
 */
@@ -189,7 +197,7 @@ module rsa_decryptor(
 	always_ff @(posedge clk) begin 
 		if(rst) begin
 			exp_enc <= 'b0;
-			mod_enc <= 'b0;
+			mod_enc <= 'b0; 
 			exp <= 'b0;
 			mod <= 'b0;
 			kbd <= 'b0;
@@ -216,27 +224,30 @@ module rsa_decryptor(
 					/* NONE */
 				end
 				3'b011: begin
+					/* decrypt RSA */
+					/* TODO */
+
+
+				end
+				3'b100: begin
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
 						aes[(32*count) + 32 - 1: (32*count)] = aes_data_i;
 						count = count + 1;
 					end
 				end
-				3'b100: begin
+				3'b101: begin
 					/* NONE */
 				end
-				3'b101: begin
+				3'b110: begin
 					/* Output Key */
 					if(out_ready_i) begin
 						out_data_o <= aes_d[(count*32) + 32 - 1: (count*32)];
 						count = count + 1;
 					end
 				end
-				3'b110: begin
-					/* NONE */
-				end
 				3'b111: begin
-					/* error */
+					/* NONE */
 				end
 			endcase
 		end

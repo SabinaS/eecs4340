@@ -21,7 +21,7 @@ module aes_kb(
 	 */
 
 	 integer count; //counts time to process md5/aes
-
+    /* AES takes 38 cycles */
 
 	 /* md5 kb and */
 

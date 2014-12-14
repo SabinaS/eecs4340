@@ -1,0 +1,222 @@
+-----------------------------------------------------------------
+Checker: LEDA v F-2011.09
+Date: Tue Sep 11 18:05:50 2012
+
+
+Command line: /proj/castl/development/synopsys64/leda/amd64/bin/leda +v2k -top aes_core add_roundkey.v aes_core.v aespipe.v first_round.v flipflop.v gen_key1.v gen_key10.v gen_key2.v gen_key3.v gen_key4.v gen_key5.v gen_key6.v gen_key7.v gen_key8.v gen_key9.v inv_aespipe.v inv_first_round.v inv_last_round.v inv_mix_columns.v inv_sbox.v inv_shift_rows.v inv_std_round.v inv_sub_bytes.v key_expansion.v last_round.v mix_columns.v mult_by11.v mult_by13.v mult_by14.v mult_by2.v mult_by3.v mult_by9.v pipereg.v prng.v prng_ff.v prng_pip_mult.v prng_register.v prng_single.v register.v rotword.v sbox.v shift_rows.v std_round.v sub_bytes.v 
+
+-----------------------------------------------------------------
+Environment variables:
+LEDA_PATH /proj/castl/development/synopsys64/leda
+LEDA_CONFIG Not defined
+LEDA_RESOURCES Not defined
+search_path Not defined
+link_library Not defined
+leda plibs files: /proj/castl/development/synopsys64/leda/resources/resource_93/plibs
+
+-----------------------------------------------------------------
+
+-----------------------------------------------------------------
+Checker Deselection Pragma summary:
+
+-----------------------------------------------------------------
+--                  Verilog violations                         --
+-----------------------------------------------------------------
+
+	Violations in library /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/.leda_work 
+
+
+
+Violations per unit:
+	3 violations in unit add_roundkey (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/add_roundkey.v)
+	6 violations in unit aes_core (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/aes_core.v)
+	5 violations in unit aespipe (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/aespipe.v)
+	8 violations in unit doColumns (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mix_columns.v)
+	8 violations in unit doInvColumns (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_mix_columns.v)
+	3 violations in unit first_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/first_round.v)
+	7 violations in unit gen_key1 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key1.v)
+	7 violations in unit gen_key10 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key10.v)
+	7 violations in unit gen_key2 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key2.v)
+	7 violations in unit gen_key3 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key3.v)
+	7 violations in unit gen_key4 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key4.v)
+	7 violations in unit gen_key5 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key5.v)
+	7 violations in unit gen_key6 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key6.v)
+	7 violations in unit gen_key7 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key7.v)
+	7 violations in unit gen_key8 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key8.v)
+	4 violations in unit gen_key9 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key9.v)
+Unit without violation:
+	0 violations in unit flipflop (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/flipflop.v)
+	0 violations in unit inv_aespipe (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_aespipe.v)
+	0 violations in unit inv_first_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_first_round.v)
+	0 violations in unit inv_last_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_last_round.v)
+	0 violations in unit inv_mix_columns (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_mix_columns.v)
+	0 violations in unit inv_sbox (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_sbox.v)
+	0 violations in unit inv_shift_rows (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_shift_rows.v)
+	0 violations in unit inv_std_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_std_round.v)
+	0 violations in unit inv_sub_bytes (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_sub_bytes.v)
+	0 violations in unit key_expansion (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/key_expansion.v)
+	0 violations in unit last_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/last_round.v)
+	0 violations in unit mix_columns (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mix_columns.v)
+	0 violations in unit mult_by11 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by11.v)
+	0 violations in unit mult_by13 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by13.v)
+	0 violations in unit mult_by14 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by14.v)
+	0 violations in unit mult_by2 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by2.v)
+	0 violations in unit mult_by3 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by3.v)
+	0 violations in unit mult_by9 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mult_by9.v)
+	0 violations in unit pipereg (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/pipereg.v)
+	0 violations in unit prng (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/prng.v)
+	0 violations in unit prng_ff (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/prng_ff.v)
+	0 violations in unit prng_pip_mult (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/prng_pip_mult.v)
+	0 violations in unit prng_register (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/prng_register.v)
+	0 violations in unit prng_single (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/prng_single.v)
+	0 violations in unit register_32 (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/register.v)
+	0 violations in unit rotword (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/rotword.v)
+	0 violations in unit sbox (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/sbox.v)
+	0 violations in unit shift_rows (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/shift_rows.v)
+	0 violations in unit std_round (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/std_round.v)
+	0 violations in unit sub_bytes (/proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/sub_bytes.v)
+
+Violations per file:
+	3 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/add_roundkey.v (70 lines)
+	6 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/aes_core.v (42 lines)
+	5 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/aespipe.v (176 lines)
+	3 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/first_round.v (45 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key1.v (60 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key10.v (62 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key2.v (62 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key3.v (60 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key4.v (63 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key5.v (60 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key6.v (62 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key7.v (62 lines)
+	7 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key8.v (62 lines)
+	4 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/gen_key9.v (60 lines)
+	8 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/inv_mix_columns.v (224 lines)
+	8 violations in file /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/mix_columns.v (211 lines)
+File without violation:
+
+Total number of violations: 100
+Total number of source code lines: 4976
+
+Violations per rule:
+
+Policy "RMM_RTL_CODING_GUIDELINES", Ruleset "BASIC_CODING_PRACTICES":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	100/549 x R_521_10 [ERROR]: "Always use descending range for multi-bit signals and ports"
+
+Policy "RMM_RTL_CODING_GUIDELINES", Ruleset "CODING_FOR_SYNTHESIS":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/29 x G_551_1_B [WARNING]: "The always keyword must be followed by an event list @(...) in a sequential block"
+
+Policy "LEDA", Ruleset "DESIGN_STRUCTURE":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/59 x B_1001 [WARNING]: "Reading from output port <%item>"
+	0/230 x B_1011 [WARNING]: "Module instantiation is not fully bound. Port <%formal> is not completely connected"
+
+Policy "LEDA", Ruleset "RTL_SYNTHESIS":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/125 x B_2001 [ERROR]: "Shift by a non constant value is not allowed"
+
+Policy "LEDA", Ruleset "DATA_TYPES":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/1 x B_3010 [ERROR]: "Loop index must be declared as integer"
+
+Policy "LEDA", Ruleset "EXPRESSIONS":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/1 x B_3203 [WARNING]: "The expression in for loop must not be constant"
+	0/2844 x B_3208 [WARNING]: "Unequal length LHS and RHS in assignment LHS : <%size>, RHS : <%size>"
+	0/230 x B_3209 [WARNING]: "Unequal length port and connection in module instantiation Formal : <%size>, Actual : <%size>"
+
+Policy "LEDA", Ruleset "STATEMENTS":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/29 x B_3419 [ERROR]: "Missing signal <%item> in sensitivity list"
+
+Policy "DFT", Ruleset "INFORMATIONAL":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/8 x DFT_022 [ERROR]: "Incomplete case statement"
+
+Policy "FORMALITY", Ruleset "SIMULATION_MISMATCH":
+	<violated>/<checked> x <label> [<severity>]:<message>
+	--------------------   ------- ----------------------
+	0/2048 x FM_2_10 [ERROR]: "Using X,Z values or ? in case items is not recommended (such items may be ignored by synthesis tools)"
+	0/8 x FM_2_12 [ERROR]: "Incomplete case_statement using full_case directive is not recommended (not supported by some imulation tools)"
+	0/8 x FM_2_18 [ERROR]: "Case choice after the default may be ignored by some simulation tools"
+	0/2332 x FM_2_4 [ERROR]: "Assignment to X is not recommended (handled differently by simulation and synthesis tools)"
+	0/230 x FM_2_7 [WARNING]: "Use named association in port map"
+	0/17 x FM_2_9 [ERROR]: "Using X,Z values or ? for comparison is not recommended (differently handled by simulation/synthesis tools)"
+
+
+-----------------------------------------------------------------
+--                    DESIGN violations                        --
+-----------------------------------------------------------------
+
+Violations per rule:
+
+Policy: LEDA  Ruleset: DESIGN_STRUCTURE
+	<violated>/<checked> x <label> [<severity>]:<message>
+	------- --------------------- ----------------------
+	0/1 x C_1001 [ERROR]: "Flipflop with fixed value data input is detected"
+Total number of violations: 0
+
+Policy: DESIGN  Ruleset: CLOCKS
+	<violated>/<checked> x <label> [<severity>]:<message>
+	---------- ------------------- ----------------------
+	0/1 x NTL_CLK04 [ERROR]: "Do not use internally generated clock"
+	0/1 x NTL_CLK09 [ERROR]: "All clock signals should be generated in a module driven by a single external clock"
+
+
+Policy: DESIGN  Ruleset: DFT
+	<violated>/<checked> x <label> [<severity>]:<message>
+	---------- ------------------- ----------------------
+	0/1 x NTL_DFT38 [ERROR]: "Flip-flop without reset detected"
+
+
+Policy: DESIGN  Ruleset: RESETS
+	<violated>/<checked> x <label> [<severity>]:<message>
+	---------- ------------------- ----------------------
+	0/1 x NTL_RST06 [ERROR]: "Avoid internally generated resets"
+
+
+Policy: DESIGN  Ruleset: STRUCTURE
+	<violated>/<checked> x <label> [<severity>]:<message>
+	---------- ------------------- ----------------------
+	4/1 x NTL_STR06 [ERROR]: "Top level output should be registered"
+	0/1 x NTL_STR29 [ERROR]: "Pulse generator"
+	0/1 x NTL_STR33 [ERROR]: "Asynchronous feedback loop detected at"
+	0/1 x NTL_STR47 [ERROR]: "Do not use latch"
+	0/1 x NTL_STR61 [ERROR]: "Do not use clock or enable signals as data inputs"
+	0/1 x NTL_STR72 [ERROR]: "A non-tristate net can have only one non-tristate driver"
+
+
+-----------------------------------------------------------------
+--                    DESIGN REPORT                            --
+-----------------------------------------------------------------
+
+Name of the top:        aes_core
+
+Library containing the top unit:        /proj/castl/home/yipeng/projects/aeselerator/aeselerator/rtl/.leda_work
+
+Number of design pins:  387
+
+Number of hierarchy levels in the design:       6
+
+Number of flipflops and latches that LEDA tools has inferred
+        Number of flipflops:    12288
+        Number of latches:      0
+
+Number of clock origins:	1
+Number of reset origins:	1
+List of clock origins:
+        aes_core.clk
+
+List of reset origins:
+        aes_core.rst
+

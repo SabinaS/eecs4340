@@ -8,8 +8,11 @@ module aes_kb(
 	input clk, rst, stall;
 	input [383:0] in_buf;
 	input start;
-	output [255:0] key;
+	output [127:0] key;
 	output valid, done;
+
+	md5 md5_inst();
+	aes aes_inst();
 
 
 

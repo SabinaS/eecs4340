@@ -7,9 +7,9 @@ module modexp(
 );
 	input clk, rst, stall;
 	input [4095:0] exp, mod;
-	input [255:0] key_i;
+	input [127:0] key_i;
 	input start;
-	output [255:0] key_o;
+	output [127:0] key_o;
 	output done, valid;
 
 

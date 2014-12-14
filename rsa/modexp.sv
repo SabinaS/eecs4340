@@ -69,15 +69,15 @@ module modexp(
 				*/
 					if(i==4095) begin //first iteration
 						if(exp[i] == 1'b1) begin
-							intermediate = key_i;
+							intermediate <= key_i;
 						end else begin
-							intermediate = 'b0001;
+							intermediate <= 'b0001;
 						end
 					end else begin
 						if(exp[i] == 1'b1) begin
-							intermediate = intermediate*intermediate*key_i;
+							intermediate <= intermediate*intermediate*key_i;
 						end else begin
-							intermediate = intermediate*intermediate;
+							intermediate <= intermediate*intermediate;
 						end
 					end
 				end

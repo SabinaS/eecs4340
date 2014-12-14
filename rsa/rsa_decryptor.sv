@@ -81,8 +81,8 @@ module rsa_decryptor(
 
 
 	aes_kb aes_kb_inst(.in_buf(key_for_rsa),.key(aes_for_rsa),.valid(aes_kb_valid), .done(aes_kb_done), .start(start_kb_decrypt), .kb(kbd), .*);
-	aes_decrypt aes_inst(.start(start_aes_decrypt), .*);
-	modexp modexp_inst (.exp(exp), .mod(mod), .key(key), .done(modexp_done), .valid(modexp_valid), .start(start_rsa_decrypt), .*);
+	//aes_decrypt aes_inst(.start(start_aes_decrypt), .*);
+	modexp modexp_inst (.exp(exp), .mod(mod), .key_i(aes), .done(modexp_done), .valid(modexp_valid), .start(start_rsa_decrypt), .key_o(aes_d),.*);
 
 
 

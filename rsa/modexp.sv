@@ -39,7 +39,7 @@ module modexp(
 				if(i==0) begin
 					i<=4095;
 					run<=1'b0;
-				else begin
+				end else begin
 					i<=i-1;
 				end
 			end

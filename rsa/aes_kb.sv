@@ -3,7 +3,7 @@
 module aes_kb(
 	clk, rst, stall,
 	in_buf, kb, start,
-	key, valid, done;
+	key, valid, done
 );
 	input clk, rst, stall;
 	input [383:0] in_buf;

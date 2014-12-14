@@ -12,6 +12,7 @@ interface rsa_ifc (input bit clk);
 	logic             led_pass_o, led_fail_o;
 
 	clocking cb @(posedge clk);
+		output rst, stall;
 		output rsa_data_i, aes_data_i, ps2_data_i;
 		output rsa_valid_i, aes_valid_i, ps2_valid_i;
 		output out_ready_i;
@@ -26,6 +27,7 @@ interface rsa_ifc (input bit clk);
 	modport bench (clocking cb);
 
 	modport dut (
+		input clk, rst, stall,
 		input rsa_data_i, aes_data_i, ps2_data_i,
 		input rsa_valid_i, aes_valid_i, ps2_valid_i,
 		input out_ready_i,

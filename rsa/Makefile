@@ -4,7 +4,9 @@ RSA_IFC = rsa_ifc.sv
 RSA_OUTPUT = rsa_testbench.exe
 
 MODULES = rsa_decryptor.sv \
-          modexp.sv
+          modexp.sv \
+          aes_kb.sv \
+          rsa_tb_adapter.sv
 
 .PHONY: all
 all: spibench

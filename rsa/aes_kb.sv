@@ -12,8 +12,8 @@ module aes_kb(
 	output [127:0] key;
 	output valid, done;
 
-	md5 md5_inst();
-	aes aes_inst();
+	//md5 md5_inst();
+	//aes aes_inst();
 
 	/* when start goes high, run the AES decryption
 	 * when done, raise the output done signal

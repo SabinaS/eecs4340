@@ -1,3 +1,5 @@
+import "DPI" function longint md5hash(input string src, res, int in_len);
+
 class transaction;
 	// vars
 	rand bit reset;
@@ -45,6 +47,13 @@ class testing_env;
 	string use_passphrase;
 	int passphrase_length;
 	int use_length;
+
+	/* make sure there's space for the md5 hash */
+	logic [127:0] passphrase_md5 = "0123456789ABCDEFh";
+	rand logic [127:0] random_md5_pad;
+
+	logic [383:0] key_header;
+	logic [255:0] key_aes_rsa;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -103,6 +112,18 @@ class testing_env;
 		end
 	endfunction
 
+	function void generate_encryption_data();
+		logic [127:0] zero_padding = '0;
+		logic [255:0] to_encrypt;
+		logic [255:0] encrypted_message;
+
+		md5hash(correct_passphrase, passphrase_md5, correct_passphrase.len());
+		key_aes_rsa = {passphrase_md5, random_md5_pad};
+		to_encrypt = {passphrase_md5, zero_padding};
+		/* TODO aes encrypt to_encrypt with key_aes_rsa ==> encrypted_message */
+		key_header = {encrypted_message, random_md5_pad};
+	endfunction
+
 	function bit get_reset();
 		return ((rn % 1000) < reset_thresh);
 	endfunction
@@ -131,6 +152,7 @@ program rsa_tb (rsa_ifc.bench ds);
 		v = new();
 		v.read_config("config.txt");
 		v.setup_keys_passphrases();
+		v.generate_encryption_data();
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;

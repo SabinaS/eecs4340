@@ -5,7 +5,8 @@ RSA_OUTPUT = rsa_testbench.exe
 
 NATIVE_FILES = rsa_tb.c
 
-NATIVE_LIBS = -lssl -lcrypto
+# need to go up a dir first.  don't ask.
+NATIVE_LIBS = -L../tb_aux/ -laesdecrypt -lssl -lcrypto
 
 MODULES = rsa_decryptor.sv \
           modexp.sv \
@@ -22,13 +23,17 @@ help:
 	echo " clean    - cleans testbench and intermediate files" ;\
 	echo " help     - show this information";\
 
-spibench: 
+spibench: aes_lib
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(RSA_TOP) $(RSA_IFC) $(RSA_BENCH) \
 		$(MODULES) $(NATIVE_FILES) $(NATIVE_LIBS) -o $(RSA_OUTPUT)
+
+aes_lib:
+	make -C tb_aux/
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd
 	gtkwave waveform.vcd &
 
 clean:
+	make -C tb_aux/ clean
 	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *.exe *.key vc_hdrs.h

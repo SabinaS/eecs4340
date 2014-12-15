@@ -1,4 +1,7 @@
-import "DPI" function longint md5hash(input string src, res, int in_len);
+import "DPI" function void md5hash(input string src, res, int in_len);
+import "DPI" function void aes_decrypt(input string key, to_encrypt,
+	encrypted_message,
+	int in_len);
 
 class transaction;
 	// vars
@@ -126,7 +129,8 @@ class testing_env;
 		md5hash(correct_passphrase, passphrase_md5, correct_passphrase.len());
 		key_aes_rsa = {passphrase_md5, random_md5_pad};
 		to_encrypt = {passphrase_md5, zero_padding};
-		/* TODO aes encrypt to_encrypt with key_aes_rsa ==> encrypted_message */
+		aes_decrypt(string'(key_aes_rsa), string'(to_encrypt),
+			string'(encrypted_message), 32);
 		key_header = {encrypted_message, random_md5_pad};
 	endfunction
 

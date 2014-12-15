@@ -34,8 +34,17 @@ class testing_env;
 
 	int reset_thresh;
 	int stall_thresh;
+	int passphrase_thresh;
 
 	int iter;
+
+	integer in_file;
+	integer out_file;
+
+	string correct_passphrase;
+	string use_passphrase;
+	int passphrase_length;
+	int use_length;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -53,6 +62,8 @@ class testing_env;
 				reset_thresh = value;
 			end else if("STALL_PROB" == param) begin
 				stall_thresh = value;
+			end else if ("CORRECT_PASSPHRASE" == param) begin
+				passphrase_thresh = value;
 			end else begin
 				$display("Invalid parameter");
 				$exit();
@@ -60,12 +71,48 @@ class testing_env;
 		end
 	endfunction
 
+	function void setup_keys_passphrases();
+		int i;
+		correct_passphrase = "";
+		for (i = 56; i>=0; i=i-1) begin
+		    begin
+		        correct_passphrase = {string'($random), correct_passphrase};
+		    end
+		end
+
+		passphrase_length = $random % 56;
+
+		/* effectively end it early */
+		correct_passphrase[passphrase_length] = "\n";
+
+		if (get_correct_pp()) begin
+			use_passphrase = correct_passphrase;
+		end else begin
+			int i;
+			use_passphrase = "";
+			for (i = 56; i>=0; i=i-1) begin
+			    begin
+			        use_passphrase = {string'($random), use_passphrase};
+			    end
+			end
+
+			use_length = $random % 56;
+
+			/* effectively end it early */
+			use_passphrase[use_length] = "\n";
+		end
+	endfunction
+
 	function bit get_reset();
-		return((rn % 1000) < reset_thresh);
+		return ((rn % 1000) < reset_thresh);
 	endfunction
 
 	function bit get_stall();
-		return((rn2 % 1000) < stall_thresh);
+		return ((rn2 % 1000) < stall_thresh);
+	endfunction
+
+	function bit get_correct_pp();
+		return ((rn2 % 1000) < passphrase_thresh);
 	endfunction
 
 endclass
@@ -83,6 +130,7 @@ program rsa_tb (rsa_ifc.bench ds);
 		t = new();
 		v = new();
 		v.read_config("config.txt");
+		v.setup_keys_passphrases();
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;

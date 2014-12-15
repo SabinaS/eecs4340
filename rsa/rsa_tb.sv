@@ -46,7 +46,7 @@ class testing_env;
 	string correct_passphrase;
 	string use_passphrase;
 	int passphrase_length;
-	int use_length;
+	int use_pp_length;
 
 	/* make sure there's space for the md5 hash */
 	logic [127:0] passphrase_md5 = "0123456789ABCDEFh";
@@ -54,6 +54,8 @@ class testing_env;
 
 	logic [383:0] key_header;
 	logic [255:0] key_aes_rsa;
+	logic [8191:0] rsa_info;
+	logic [8575:0] full_data;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -90,7 +92,6 @@ class testing_env;
 		end
 
 		passphrase_length = $random % 56;
-
 		/* effectively end it early */
 		correct_passphrase[passphrase_length] = "\n";
 
@@ -105,14 +106,13 @@ class testing_env;
 			    end
 			end
 
-			use_length = $random % 56;
-
+			use_pp_length = $random % 56;
 			/* effectively end it early */
-			use_passphrase[use_length] = "\n";
+			use_passphrase[use_pp_length] = "\n";
 		end
 	endfunction
 
-	function void generate_encryption_data();
+	function void generate_key_header();
 		logic [127:0] zero_padding = '0;
 		logic [255:0] to_encrypt;
 		logic [255:0] encrypted_message;
@@ -122,6 +122,14 @@ class testing_env;
 		to_encrypt = {passphrase_md5, zero_padding};
 		/* TODO aes encrypt to_encrypt with key_aes_rsa ==> encrypted_message */
 		key_header = {encrypted_message, random_md5_pad};
+	endfunction
+
+	function void generate_rsa_key();
+		logic [4095:0] n; /* modulus */
+		logic [4095:0] d; /* private exponent */
+		logic [4095:0] e; /* public exponent */
+		/* TODO implementation */
+		rsa_info = {n, d};
 	endfunction
 
 	function bit get_reset();
@@ -147,12 +155,19 @@ program rsa_tb (rsa_ifc.bench ds);
 	int failures = 0;
 	bit reset;
 
+	int data_selector = 0;
+	int keyboard_data_selector = 0;
+	bit keyboard_done = '0;
+
 	initial begin
 		t = new();
 		v = new();
 		v.read_config("config.txt");
 		v.setup_keys_passphrases();
-		v.generate_encryption_data();
+		v.generate_key_header();
+		v.generate_rsa_key();
+		v.full_data = {v.rsa_info, v.key_header};
+		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;
@@ -174,11 +189,53 @@ program rsa_tb (rsa_ifc.bench ds);
 				$display("%t : %s \n", $realtime, "Driving Reset");
 			end else begin
 				ds.cb.rst <= 1'b0;
-				/* TODO later */
 				if (v.get_stall()) begin
 					ds.cb.stall <= 1'b1;
+					/* necessary? */
+					ds.cb.rsa_valid_i <= 1'b0;
+					ds.cb.aes_valid_i <= 1'b0;
+					ds.cb.ps2_valid_i <= 1'b0;
 				end else begin
 					ds.cb.stall <= 1'b0;
+					/* send data if necessary */
+					if (ds.cb.rsa_ready_o) begin
+						ds.cb.rsa_data_i <=
+							v.full_data[32*data_selector +: 32];
+						ds.cb.rsa_valid_i <= 1'b1;
+						data_selector = data_selector + 1;
+					end else begin
+						ds.cb.rsa_valid_i <= 1'b0;
+					end
+
+					/* handle aes */
+					if (ds.cb.aes_ready_o) begin
+						/* TODO make real */
+						ds.cb.aes_data_i <= '0;
+						ds.cb.aes_valid_i <= 1'b1;
+					end else begin
+						ds.cb.aes_valid_i <= 1'b0;
+					end
+
+					/* handle keyboard */
+					/* TODO add reset functionality */
+					if (!keyboard_done) begin
+						if (v.use_passphrase.substr(
+									8*(keyboard_data_selector + 1),
+									8*keyboard_data_selector) ==
+								"\n") begin
+							ds.cb.ps2_done <= 1'b1;
+							ds.cb.ps2_valid_i <= 1'b0;
+							keyboard_done = 1;
+						end else begin
+							ds.cb.ps2_data_i <=
+								//v.use_passphrase[8*keyboard_data_selector +: 8];
+								v.use_passphrase.substr(
+									8*(keyboard_data_selector + 1),
+									8*keyboard_data_selector);
+							ds.cb.ps2_valid_i <= 1'b1;
+							keyboard_data_selector = keyboard_data_selector + 1;
+						end
+					end
 				end
 			end
 
@@ -195,8 +252,14 @@ program rsa_tb (rsa_ifc.bench ds);
 					$display("%t : %s \n", $realtime,
 						t.check_stall(ds.cb.aes_ready_o, ds.cb.rsa_ready_o)
 						? "Pass-stall" : "Fail-stall");
+				end else begin
+				/* data checks */
+					if (ds.cb.out_valid_o) begin
+
+					end
 				end
 			end
+
 			/* TODO: golden_output */
 		end
 	end

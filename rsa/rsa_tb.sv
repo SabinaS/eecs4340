@@ -55,7 +55,13 @@ class testing_env;
 	logic [383:0] key_header;
 	logic [255:0] key_aes_rsa;
 	logic [8191:0] rsa_info;
+	logic [4095:0] private_key;
 	logic [8575:0] full_data;
+
+	int data_selector = 0;
+	int incoming_data_selector = 0;
+	int keyboard_data_selector = 0;
+	bit keyboard_done = '0;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -126,10 +132,17 @@ class testing_env;
 
 	function void generate_rsa_key();
 		logic [4095:0] n; /* modulus */
-		logic [4095:0] d; /* private exponent */
 		logic [4095:0] e; /* public exponent */
 		/* TODO implementation */
-		rsa_info = {n, d};
+		rsa_info = {n, private_key};
+	endfunction
+
+	function void handle_reset();
+		setup_keys_passphrases();
+		generate_key_header();
+		generate_rsa_key();
+		full_data = {rsa_info, key_header};
+		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
 	endfunction
 
 	function bit get_reset();
@@ -154,20 +167,14 @@ program rsa_tb (rsa_ifc.bench ds);
 
 	int failures = 0;
 	bit reset;
-
-	int data_selector = 0;
-	int keyboard_data_selector = 0;
-	bit keyboard_done = '0;
+	bit check_done = 1'b0;
+	bit check_fail = 1'b0;
 
 	initial begin
 		t = new();
 		v = new();
 		v.read_config("config.txt");
-		v.setup_keys_passphrases();
-		v.generate_key_header();
-		v.generate_rsa_key();
-		v.full_data = {v.rsa_info, v.key_header};
-		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
+		v.handle_reset();
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;
@@ -184,7 +191,8 @@ program rsa_tb (rsa_ifc.bench ds);
 		// Iterate iter number of cycles
 		repeat (v.iter) begin
 			v.randomize();
-			if(v.get_reset()) begin
+			if(v.get_reset() || check_done) begin
+				check_done <= 1'b0;
 				ds.cb.rst <= 1'b1;
 				$display("%t : %s \n", $realtime, "Driving Reset");
 			end else begin
@@ -200,9 +208,9 @@ program rsa_tb (rsa_ifc.bench ds);
 					/* send data if necessary */
 					if (ds.cb.rsa_ready_o) begin
 						ds.cb.rsa_data_i <=
-							v.full_data[32*data_selector +: 32];
+							v.full_data[32*v.data_selector +: 32];
 						ds.cb.rsa_valid_i <= 1'b1;
-						data_selector = data_selector + 1;
+						v.data_selector = v.data_selector + 1;
 					end else begin
 						ds.cb.rsa_valid_i <= 1'b0;
 					end
@@ -218,26 +226,26 @@ program rsa_tb (rsa_ifc.bench ds);
 
 					/* handle keyboard */
 					/* TODO add reset functionality */
-					if (!keyboard_done) begin
+					if (!v.keyboard_done) begin
 						if (v.use_passphrase.substr(
-									8*(keyboard_data_selector + 1),
-									8*keyboard_data_selector) ==
+									v.keyboard_data_selector + 1,
+									v.keyboard_data_selector) ==
 								"\n") begin
 							ds.cb.ps2_done <= 1'b1;
 							ds.cb.ps2_valid_i <= 1'b0;
-							keyboard_done = 1;
+							v.keyboard_done = 1;
 						end else begin
 							ds.cb.ps2_data_i <=
-								//v.use_passphrase[8*keyboard_data_selector +: 8];
 								v.use_passphrase.substr(
-									8*(keyboard_data_selector + 1),
-									8*keyboard_data_selector);
+									v.keyboard_data_selector + 1,
+									v.keyboard_data_selector);
 							ds.cb.ps2_valid_i <= 1'b1;
-							keyboard_data_selector = keyboard_data_selector + 1;
+							v.keyboard_data_selector =
+								v.keyboard_data_selector + 1;
 						end
-					end
+					end /* end keyboard */
 				end
-			end
+			end /* end reset check */
 
 			@(ds.cb);
 
@@ -247,20 +255,42 @@ program rsa_tb (rsa_ifc.bench ds);
 						ds.cb.rsa_ready_o, ds.cb.aes_ready_o,
 						ds.cb.led_pass_o, ds.cb.led_fail_o)
 					? "Pass-reset" : "Fail-reset");
+				v.handle_reset();
+				v.data_selector = 0;
+				v.incoming_data_selector = 0;
+				v.keyboard_data_selector = 0;
+				v.keyboard_done = '0;
+				check_done = 1'b0;
 			end else begin
 				if (v.get_stall()) begin
 					$display("%t : %s \n", $realtime,
 						t.check_stall(ds.cb.aes_ready_o, ds.cb.rsa_ready_o)
 						? "Pass-stall" : "Fail-stall");
 				end else begin
-				/* data checks */
+					/* checks data out */
 					if (ds.cb.out_valid_o) begin
-
+						if (v.private_key[32*v.incoming_data_selector +: 32] ==
+									ds.cb.out_data_o) begin
+								/* match so far */
+						end else begin
+							$display("%t : Fail-data\n", $realtime);
+							check_fail = 1'b1;
+							failures = failures + 1;
+						end
+						v.incoming_data_selector = v.incoming_data_selector + 1;
 					end
 				end
 			end
 
-			/* TODO: golden_output */
+			/* finished with this iteration */
+			if (v.incoming_data_selector == 128) begin /* 4096 / 32 */
+				if (check_fail) begin
+					$display("%t : Fail-data_test\n", $realtime);
+					check_fail = 1'b0;
+				end
+				v.handle_reset();
+				check_done = 1'b1;
+			end
 		end
 	end
 endprogram

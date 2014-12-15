@@ -1,3 +1,8 @@
+import "DPI" function void md5hash(input string src, res, int in_len);
+import "DPI" function void aes_decrypt(input string key, to_encrypt,
+	encrypted_message,
+	int in_len);
+
 class transaction;
 	// vars
 	rand bit reset;
@@ -34,8 +39,32 @@ class testing_env;
 
 	int reset_thresh;
 	int stall_thresh;
+	int passphrase_thresh;
 
 	int iter;
+
+	integer in_file;
+	integer out_file;
+
+	string correct_passphrase;
+	string use_passphrase;
+	int passphrase_length;
+	int use_pp_length;
+
+	/* make sure there's space for the md5 hash */
+	logic [127:0] passphrase_md5 = "0123456789ABCDEFh";
+	rand logic [127:0] random_md5_pad;
+
+	logic [383:0] key_header;
+	logic [255:0] key_aes_rsa;
+	logic [8191:0] rsa_info;
+	logic [4095:0] private_key;
+	logic [8575:0] full_data;
+
+	int data_selector = 0;
+	int incoming_data_selector = 0;
+	int keyboard_data_selector = 0;
+	bit keyboard_done = '0;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -53,6 +82,8 @@ class testing_env;
 				reset_thresh = value;
 			end else if("STALL_PROB" == param) begin
 				stall_thresh = value;
+			end else if ("CORRECT_PASSPHRASE" == param) begin
+				passphrase_thresh = value;
 			end else begin
 				$display("Invalid parameter");
 				$exit();
@@ -60,12 +91,74 @@ class testing_env;
 		end
 	endfunction
 
+	function void setup_keys_passphrases();
+		int i;
+		correct_passphrase = "";
+		for (i = 56; i>=0; i=i-1) begin
+		    begin
+		        correct_passphrase = {string'($random), correct_passphrase};
+		    end
+		end
+
+		passphrase_length = $random % 56;
+		/* effectively end it early */
+		correct_passphrase[passphrase_length] = "\n";
+
+		if (get_correct_pp()) begin
+			use_passphrase = correct_passphrase;
+		end else begin
+			int i;
+			use_passphrase = "";
+			for (i = 56; i>=0; i=i-1) begin
+			    begin
+			        use_passphrase = {string'($random), use_passphrase};
+			    end
+			end
+
+			use_pp_length = $random % 56;
+			/* effectively end it early */
+			use_passphrase[use_pp_length] = "\n";
+		end
+	endfunction
+
+	function void generate_key_header();
+		logic [127:0] zero_padding = '0;
+		logic [255:0] to_encrypt;
+		logic [255:0] encrypted_message;
+
+		md5hash(correct_passphrase, passphrase_md5, correct_passphrase.len());
+		key_aes_rsa = {passphrase_md5, random_md5_pad};
+		to_encrypt = {passphrase_md5, zero_padding};
+		aes_decrypt(string'(key_aes_rsa), string'(to_encrypt),
+			string'(encrypted_message), 32);
+		key_header = {encrypted_message, random_md5_pad};
+	endfunction
+
+	function void generate_rsa_key();
+		logic [4095:0] n; /* modulus */
+		logic [4095:0] e; /* public exponent */
+		/* TODO implementation */
+		rsa_info = {n, private_key};
+	endfunction
+
+	function void handle_reset();
+		setup_keys_passphrases();
+		generate_key_header();
+		generate_rsa_key();
+		full_data = {rsa_info, key_header};
+		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
+	endfunction
+
 	function bit get_reset();
-		return((rn % 1000) < reset_thresh);
+		return ((rn % 1000) < reset_thresh);
 	endfunction
 
 	function bit get_stall();
-		return((rn2 % 1000) < stall_thresh);
+		return ((rn2 % 1000) < stall_thresh);
+	endfunction
+
+	function bit get_correct_pp();
+		return ((rn2 % 1000) < passphrase_thresh);
 	endfunction
 
 endclass
@@ -78,11 +171,14 @@ program rsa_tb (rsa_ifc.bench ds);
 
 	int failures = 0;
 	bit reset;
+	bit check_done = 1'b0;
+	bit check_fail = 1'b0;
 
 	initial begin
 		t = new();
 		v = new();
 		v.read_config("config.txt");
+		v.handle_reset();
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;
@@ -99,18 +195,61 @@ program rsa_tb (rsa_ifc.bench ds);
 		// Iterate iter number of cycles
 		repeat (v.iter) begin
 			v.randomize();
-			if(v.get_reset()) begin
+			if(v.get_reset() || check_done) begin
+				check_done <= 1'b0;
 				ds.cb.rst <= 1'b1;
 				$display("%t : %s \n", $realtime, "Driving Reset");
 			end else begin
 				ds.cb.rst <= 1'b0;
-				/* TODO later */
 				if (v.get_stall()) begin
 					ds.cb.stall <= 1'b1;
+					/* necessary? */
+					ds.cb.rsa_valid_i <= 1'b0;
+					ds.cb.aes_valid_i <= 1'b0;
+					ds.cb.ps2_valid_i <= 1'b0;
 				end else begin
 					ds.cb.stall <= 1'b0;
+					/* send data if necessary */
+					if (ds.cb.rsa_ready_o) begin
+						ds.cb.rsa_data_i <=
+							v.full_data[32*v.data_selector +: 32];
+						ds.cb.rsa_valid_i <= 1'b1;
+						v.data_selector = v.data_selector + 1;
+					end else begin
+						ds.cb.rsa_valid_i <= 1'b0;
+					end
+
+					/* handle aes */
+					if (ds.cb.aes_ready_o) begin
+						/* TODO make real */
+						ds.cb.aes_data_i <= '0;
+						ds.cb.aes_valid_i <= 1'b1;
+					end else begin
+						ds.cb.aes_valid_i <= 1'b0;
+					end
+
+					/* handle keyboard */
+					/* TODO add reset functionality */
+					if (!v.keyboard_done) begin
+						if (v.use_passphrase.substr(
+									v.keyboard_data_selector + 1,
+									v.keyboard_data_selector) ==
+								"\n") begin
+							ds.cb.ps2_done <= 1'b1;
+							ds.cb.ps2_valid_i <= 1'b0;
+							v.keyboard_done = 1;
+						end else begin
+							ds.cb.ps2_data_i <=
+								v.use_passphrase.substr(
+									v.keyboard_data_selector + 1,
+									v.keyboard_data_selector);
+							ds.cb.ps2_valid_i <= 1'b1;
+							v.keyboard_data_selector =
+								v.keyboard_data_selector + 1;
+						end
+					end /* end keyboard */
 				end
-			end
+			end /* end reset check */
 
 			@(ds.cb);
 
@@ -120,14 +259,42 @@ program rsa_tb (rsa_ifc.bench ds);
 						ds.cb.rsa_ready_o, ds.cb.aes_ready_o,
 						ds.cb.led_pass_o, ds.cb.led_fail_o)
 					? "Pass-reset" : "Fail-reset");
+				v.handle_reset();
+				v.data_selector = 0;
+				v.incoming_data_selector = 0;
+				v.keyboard_data_selector = 0;
+				v.keyboard_done = '0;
+				check_done = 1'b0;
 			end else begin
 				if (v.get_stall()) begin
 					$display("%t : %s \n", $realtime,
 						t.check_stall(ds.cb.aes_ready_o, ds.cb.rsa_ready_o)
 						? "Pass-stall" : "Fail-stall");
+				end else begin
+					/* checks data out */
+					if (ds.cb.out_valid_o) begin
+						if (v.private_key[32*v.incoming_data_selector +: 32] ==
+									ds.cb.out_data_o) begin
+								/* match so far */
+						end else begin
+							$display("%t : Fail-data\n", $realtime);
+							check_fail = 1'b1;
+							failures = failures + 1;
+						end
+						v.incoming_data_selector = v.incoming_data_selector + 1;
+					end
 				end
 			end
-			/* TODO: golden_output */
+
+			/* finished with this iteration */
+			if (v.incoming_data_selector == 128) begin /* 4096 / 32 */
+				if (check_fail) begin
+					$display("%t : Fail-data_test\n", $realtime);
+					check_fail = 1'b0;
+				end
+				v.handle_reset();
+				check_done = 1'b1;
+			end
 		end
 	end
 endprogram

@@ -1,7 +1,7 @@
 import "DPI" function void md5hash(input string src, res, int in_len);
 import "DPI" function void aes_encrypt(input string key, to_encrypt,
-	encrypted_message,
-	int in_len);
+	output encrypted_message,
+	input int in_len);
 import "DPI" function void generate_rsa_keys_lib(output logic[4095:0] modulus,
 	private_key);
 
@@ -129,7 +129,7 @@ class testing_env;
 		key_aes_rsa = {passphrase_md5, random_md5_pad};
 		key_header_to_encrypt = {passphrase_md5, zero_padding};
 		aes_encrypt(string'(key_aes_rsa), string'(key_header_to_encrypt),
-			string'(encrypted_message), 32);
+			encrypted_message, 32);
 		key_header = {encrypted_message, random_md5_pad};
 	endfunction
 
@@ -218,6 +218,8 @@ program rsa_tb (rsa_ifc.bench ds);
 
 					/* handle aes */
 					if (ds.cb.aes_ready_o) begin
+						/* TODO how is data being spit out to AES?
+						   How does AES know what to decrypt? */
 						ds.cb.aes_data_i <=
 							v.key_header_to_encrypt[32*v.aes_data_selector +: 32];
 						ds.cb.aes_valid_i <= 1'b1;

@@ -2,6 +2,7 @@
 #include "svdpi_src.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <openssl/md5.h>
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
@@ -13,11 +14,18 @@ void md5hash(char *src, char *res, int in_len) {
 	MD5(src, in_len, res);
 }
 
-void aes_encrypt(char* key, char *src, char *res, int in_len /* bytes */) {
-	memmove(res, src, in_len);
+void aes_encrypt(char* key, char *src, svLogicPackedArrRef res, int in_len /* bytes */) {
+	char *res_char = malloc(sizeof *res_char * in_len);
+	memmove(res_char, src, in_len);
 
 	/* in-place modification of res */
-	aes_encrypt_block(res,key);
+	aes_encrypt_block(res_char, key);
+
+	/* copy it back to the register */
+	SV_LOGIC_PACKED_ARRAY(4096, res_log);
+	memcpy(&res_log, res_char, in_len);
+
+	res = res_log;
 }
 
 RSA *rsa_info = NULL;

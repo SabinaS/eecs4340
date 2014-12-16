@@ -13,11 +13,11 @@ void md5hash(char *src, char *res, int in_len) {
 	MD5(src, in_len, res);
 }
 
-void aes_decrypt(char* key, char *src, char *res, int in_len /* bytes */) {
+void aes_encrypt(char* key, char *src, char *res, int in_len /* bytes */) {
 	memmove(res, src, in_len);
 
 	/* in-place modification of res */
-	aes_decrypt_block(res,key);
+	aes_encrypt_block(res,key);
 }
 
 RSA *rsa_info = NULL;

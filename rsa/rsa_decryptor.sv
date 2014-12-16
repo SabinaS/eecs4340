@@ -23,7 +23,7 @@ module rsa_decryptor(
 
 	output logic led_pass_o, led_fail_o;
 
-	logic logic [3:0] state;
+	logic [3:0] state;
 	/*
 		State 0: Buffering RSA key from FS
 		State 1: Buffering keyboard input
@@ -205,10 +205,10 @@ module rsa_decryptor(
 	/* BUFFERS */
 	always_ff @(posedge clk) begin 
 		if(rst) begin
-			exp_enc <= 'b0;
-			mod_enc <= 'b0; 
-			exp <= 'b0;
-			mod <= 'b0;
+			//exp_enc <= 'b0;
+			//mod_enc <= 'b0; 
+			//exp <= 'b0;
+			//mod <= 'b0;
 			kbd <= 'b0;
 			aes <= 'b0;
 		end else begin

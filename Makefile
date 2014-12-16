@@ -27,7 +27,7 @@ md5bench:
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice md5/*.sv memory/*.sv memory/altsyncram.v -o md5testbench.exe 
 
 rsabench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice rsa/*.sv -o rsatestbench.exe 
+	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice rsa/rsa_decryptor.sv rsa/aes_kb.sv rsa/modexp.sv md5/md5.sv md5/md5_chunk_cruncher.sv md5/*calc.sv md5/md5_leftrotate.sv memory/*.sv memory/altsyncram.v aes/aes.sv aes/*.v -o rsatestbench.exe 
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd

@@ -6,12 +6,12 @@ module modexp(
 	exp, mod, key_i, start,
 	key_o, done, valid
 );
-	input clk, rst, stall;
-	input [4095:0] exp, mod; //would actually want to chunk this
-	input [127:0] key_i;
-	input start;
-	output [127:0] key_o;
-	output done, valid;
+	input logic clk, rst, stall;
+	input logic [4095:0] exp, mod; //would actually want to chunk this
+	input logic [127:0] key_i;
+	input logic start;
+	output logic [127:0] key_o;
+	output logic done, valid;
 
 
 	logic [127:0] intermediate;

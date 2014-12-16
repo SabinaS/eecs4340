@@ -9,8 +9,8 @@ module aes_kb(
 	input [383:0] in_buf; //stuff to decrypt 
 	input [447:0] kb; //md5 to make key
 	input start;
-	output [127:0] key; //output valid AES key
-	output valid, done;
+	output logic [127:0] key; //output valid AES key
+	output logic valid, done;
 
 
 	/* wires to md5 module */

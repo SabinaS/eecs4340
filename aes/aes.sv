@@ -10,7 +10,7 @@ module aes(
 	input [127:0] aes_in;
 	output [127:0] data_out;//38 cycles later
 
-	inv_aespipe aes_inst(.*);
+	inv_aespipe aes_inst(.*); //ignore stall
 	
 
 

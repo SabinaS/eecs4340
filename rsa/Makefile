@@ -11,10 +11,18 @@ NATIVE_LIBS = -L../tb_aux/ -laesdecrypt -lssl -lcrypto
 MODULES = rsa_decryptor.sv \
           modexp.sv \
           aes_kb.sv \
-          rsa_tb_adapter.sv
+          rsa_tb_adapter.sv \
+          ../md5/md5.sv \
+          ../md5/md5_chunk_cruncher.sv \
+          ../md5/*calc.sv \
+          ../md5/md5_leftrotate.sv \
+          ../memory/*.sv \
+          ../memory/altsyncram.v \
+          ../aes/aes.sv \
+          ../aes/*.v
 
 .PHONY: all
-all: spibench
+all: rsabench
 
 help:
 	@echo "The following make targets are supported:" ;\
@@ -23,7 +31,7 @@ help:
 	echo " clean    - cleans testbench and intermediate files" ;\
 	echo " help     - show this information";\
 
-spibench: aes_lib
+rsabench: aes_lib
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(RSA_TOP) $(RSA_IFC) $(RSA_BENCH) \
 		$(MODULES) $(NATIVE_FILES) $(NATIVE_LIBS) -o $(RSA_OUTPUT)
 

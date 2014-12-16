@@ -49,8 +49,8 @@ module aes_kb(
 
 
 	md5 md5_inst(.writeaddr(md5_wa), .writedata(md5_data),.write(md5_w),
-		.start(md5_start),.done(md5_done),.digest0(aes_key),*);
-	aes aes_inst(.aes_in(data), .key(aes_key), .data_out(aes_key_d), .*;
+		.start(md5_start),.done(md5_done),.digest0(aes_key),.reset(rst),.*);
+	aes aes_inst(.aes_in(data), .key(aes_key), .data_out(aes_key_d), .*);
 
 
 	/* when start goes high, run the AES decryption

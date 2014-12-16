@@ -24,12 +24,6 @@ class transaction;
 		return ((aes_ready_o == '0) &&
 				(rsa_ready_o == '0));
 	endfunction
-
-	function void golden_result();
-		// TODO later
-	endfunction
-
-
 endclass 
 
 
@@ -59,6 +53,7 @@ class testing_env;
 
 	logic [383:0] key_header;
 	logic [255:0] key_aes_rsa;
+	logic [255:0] key_header_to_encrypt;
 	logic [8191:0] rsa_info;
 	logic [8575:0] full_data;
 
@@ -67,6 +62,7 @@ class testing_env;
 
 	int data_selector = 0;
 	int incoming_data_selector = 0;
+	int aes_data_selector = 0;
 	int keyboard_data_selector = 0;
 	bit keyboard_done = '0;
 
@@ -127,13 +123,12 @@ class testing_env;
 
 	function void generate_key_header();
 		logic [127:0] zero_padding = '0;
-		logic [255:0] to_encrypt;
 		logic [255:0] encrypted_message;
 
 		md5hash(correct_passphrase, passphrase_md5, correct_passphrase.len());
 		key_aes_rsa = {passphrase_md5, random_md5_pad};
-		to_encrypt = {passphrase_md5, zero_padding};
-		aes_encrypt(string'(key_aes_rsa), string'(to_encrypt),
+		key_header_to_encrypt = {passphrase_md5, zero_padding};
+		aes_encrypt(string'(key_aes_rsa), string'(key_header_to_encrypt),
 			string'(encrypted_message), 32);
 		key_header = {encrypted_message, random_md5_pad};
 	endfunction
@@ -216,16 +211,17 @@ program rsa_tb (rsa_ifc.bench ds);
 						ds.cb.rsa_data_i <=
 							v.full_data[32*v.data_selector +: 32];
 						ds.cb.rsa_valid_i <= 1'b1;
-						v.data_selector = v.data_selector + 1;
+						v.data_selector = (v.data_selector + 1) % 268; /* 8576 / 32 */
 					end else begin
 						ds.cb.rsa_valid_i <= 1'b0;
 					end
 
 					/* handle aes */
 					if (ds.cb.aes_ready_o) begin
-						/* TODO make real */
-						ds.cb.aes_data_i <= '0;
+						ds.cb.aes_data_i <=
+							v.key_header_to_encrypt[32*v.aes_data_selector +: 32];
 						ds.cb.aes_valid_i <= 1'b1;
+						v.aes_data_selector = (v.aes_data_selector + 1) % 8; /* 256 / 32 */
 					end else begin
 						ds.cb.aes_valid_i <= 1'b0;
 					end
@@ -234,8 +230,8 @@ program rsa_tb (rsa_ifc.bench ds);
 					/* TODO add reset functionality */
 					if (!v.keyboard_done) begin
 						if (v.use_passphrase.substr(
-									v.keyboard_data_selector + 1,
-									v.keyboard_data_selector) ==
+									v.keyboard_data_selector,
+									v.keyboard_data_selector + 1) ==
 								"\n") begin
 							ds.cb.ps2_done <= 1'b1;
 							ds.cb.ps2_valid_i <= 1'b0;

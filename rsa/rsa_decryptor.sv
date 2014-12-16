@@ -8,22 +8,22 @@ module rsa_decryptor(
 	out_data_o, out_valid_o, out_ready_i,
 	led_pass_o, led_fail_o
 );
-	input clk, rst, stall;
+	input logic clk, rst, stall;
 
-	input aes_valid_i, rsa_valid_i;
-	output aes_ready_o, rsa_ready_o;
-	input [31:0] aes_data_i, rsa_data_i;
+	input logic aes_valid_i, rsa_valid_i;
+	output logic aes_ready_o, rsa_ready_o;
+	input logic [31:0] aes_data_i, rsa_data_i;
 
-	input [7:0] ps2_data_i; 
-	input ps2_done, ps2_reset, ps2_valid_i;
+	input logic [7:0] ps2_data_i; 
+	input logic ps2_done, ps2_reset, ps2_valid_i;
 
-	output [31:0] out_data_o;
-	output out_valid_o;
-	input out_ready_i;
+	output logic [31:0] out_data_o;
+	output logic out_valid_o;
+	input logic out_ready_i;
 
-	output led_pass_o, led_fail_o;
+	output logic led_pass_o, led_fail_o;
 
-	logic [3:0] state;
+	logic logic [3:0] state;
 	/*
 		State 0: Buffering RSA key from FS
 		State 1: Buffering keyboard input

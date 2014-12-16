@@ -42,17 +42,66 @@ module aes_kb(
 	 */
 
 	 integer count; //counts time to process md5/aes
+
+
     /* AES takes 38 cycles */
+
+    logic [1:0] state; 
+    /*  0: waiting
+		1: run md5
+		2: run aes
+		3: check 
+	*/
+ 
 
     always_ff @(posedge clk) begin
     	if(rst) begin
-
+    		state <= 2'b00;
+    		count <= 0;
+    		md5_start <= 1'b0;
+    		md5_wa <= 'b0;
+    		md5_data <= 'b0;
+    		md5_w <= 1'b0;
+    		valid <= 1'b0;
+    		done <= 1'b0;
     	end else begin
-    		/* feed md5 data to md5 unit, wait for done */
+    		case(state)
+    			2'b00: begin
+    				if(start) begin
+    					state <= 2'b00;
+    					count <= 0;
+    				end else begin
+    					/* do nothing */
+    				end
+    			end
 
-    		/* when md5 done, put in AES and run for 38 cycles */
+    			2'b01: begin /* feed md5 data to md5 unit, wait for done */
+    				if(md5_done) begin
+    					state <= 2'b10;
+    					count <= 0;
+    				end else begin
+    					if(count==4) begin
+	    					/* wait until done */
+    					end else begin
+    						/* push data into md5 */
+    					end
+    				end
+    			end
 
-    		/* after 38 cycles, compare to expected */
+    			2'b10: begin /* when md5 done, put in AES and run for 38 cycles */
+    				if(count==38) begin
+    					state <= 2'b11;
+    					count <= 0;
+    				end else begin
+    					/* wait until done */
+    					count <= count + 1;
+    				end
+    			end
+
+    			2'b11: begin /* after 38 cycles, compare to expected */
+
+    			end
+	    	endcase
     	end
     end
 

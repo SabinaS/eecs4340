@@ -28,8 +28,25 @@ module aes_kb(
 
 
 	//kb is 448 bits, need to append 1000...000 to it
-	logic [511:0] kbd; 
-	assign kbd = {64'b1000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000, kb};
+	logic [32:0] kbd [0:15]; 
+	/* endianness ???? TODO */
+	assign kbd[15] = 32'b1000_0000_0000_0000_0000_0000_0000_0000;
+	assign kbd[14] = 32'b0000_0000_0000_0000_0000_0000_0000_0000;
+	assign kbd[13] = kb[447:416];
+	assign kbd[12] = kb[415:384];
+	assign kbd[11] = kb[383:352];
+	assign kbd[10] = kb[351:320];
+	assign kbd[9] = kb[319:288];
+	assign kbd[8] = kb[287:256];
+	assign kbd[7] = kb[255:224];
+	assign kbd[6] = kb[223:192];
+	assign kbd[5] = kb[191:160];
+	assign kbd[4] = kb[159:128];
+	assign kbd[3] = kb[127:96];
+	assign kbd[2] = kb[95:64];
+	assign kbd[1] = kb[63:32];
+	assign kbd[0] = kb[31:0];
+
 
 	md5 md5_inst(.writeaddr(md5_wa), .writedata(md5_data),.write(md5_w),
 		.start(md5_start),.done(md5_done),.digest0(aes_key),*);
@@ -80,10 +97,15 @@ module aes_kb(
     					state <= 2'b10;
     					count <= 0;
     				end else begin
-    					if(count==4) begin
+    					if(count==16) begin
 	    					/* wait until done */
     					end else begin
     						/* push data into md5 */
+							md5_wa <= count[3:0];
+							md5_data <= kbd[count];
+							md5_w <= 1'b1;
+							count <= count + 1;
+
     					end
     				end
     			end

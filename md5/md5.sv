@@ -7,21 +7,21 @@ module md5 (
 
     input logic write,
     input logic [31:0] writedata,
-    input logic [4:0]  writeaddr,
+    input logic [3:0]  writeaddr,
 
     output logic [127:0] digest0,
 
-    output logic [1:0] done
+    output logic done
 );
 
-logic m_write;
-assign m_write = write && !writeaddr[4];
+//logic m_write;
+//assign m_write = write;
 
 logic [5:0] cc_iaddr;
 logic [3:0] cc_gaddr;
 
-logic [127:0] cc_digest;
-assign digest0 = cc_digest;
+//logic [127:0] cc_digest;
+//assign digest0 = cc_digest;
 
 logic [31:0] cc_mdata;
 logic [4:0]  cc_sdata;
@@ -32,7 +32,7 @@ md5_chunk_cruncher cc (
     .reset (reset),
     .start (start),
     .done (done),
-    .digest (cc_digest),
+    .digest (digest0),
     .iaddr (cc_iaddr),
     .kdata (cc_kdata),
     .sdata (cc_sdata),
@@ -44,7 +44,7 @@ mdataram mram (
     .clock (clk),
     .data (writedata),
     .wraddress (writeaddr[3:0]),
-    .wren (m_write),
+    .wren (write),
     .rdaddress (cc_gaddr),
     .q (cc_mdata)
 );

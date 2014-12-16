@@ -2,6 +2,8 @@ import "DPI" function void md5hash(input string src, res, int in_len);
 import "DPI" function void aes_decrypt(input string key, to_encrypt,
 	encrypted_message,
 	int in_len);
+import "DPI" function void generate_rsa_keys_lib(output logic[4095:0] modulus,
+	private_key);
 
 class transaction;
 	// vars
@@ -58,8 +60,10 @@ class testing_env;
 	logic [383:0] key_header;
 	logic [255:0] key_aes_rsa;
 	logic [8191:0] rsa_info;
-	logic [4095:0] private_key;
 	logic [8575:0] full_data;
+
+	logic [4095:0] modulus = '0; /* modulus */
+	logic [4095:0] private_key;
 
 	int data_selector = 0;
 	int incoming_data_selector = 0;
@@ -135,10 +139,8 @@ class testing_env;
 	endfunction
 
 	function void generate_rsa_key();
-		logic [4095:0] n; /* modulus */
-		logic [4095:0] e; /* public exponent */
-		/* TODO implementation */
-		rsa_info = {n, private_key};
+		generate_rsa_keys_lib(modulus, private_key);
+		rsa_info = {modulus, private_key};
 	endfunction
 
 	function void handle_reset();

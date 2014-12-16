@@ -15,20 +15,17 @@ reg clk = 1'b1;
 reg reset;
 reg start;
 wire [127:0] digest0;
-wire [127:0] digest1;
-wire done1;
 wire done0;
 
 md5 md5 (
     .clk (clk),
-    .reset ({1'b0, reset}),
-    .start ({1'b0, start}),
+    .reset (reset),
+    .start (start),
     .write (write),
     .writedata (writedata),
-    .writeaddr ({1'b0, writeaddr}),
+    .writeaddr (writeaddr),
     .digest0 (digest0),
-    .digest1 (digest1),
-    .done ({done1, done0})
+    .done (done0)
 );
 
 always begin

@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module rsa_decryptor(
+module rsa(
 	clk, rst, stall,
 	aes_data_i, aes_valid_i, aes_ready_o,
 	rsa_data_i, rsa_valid_i, rsa_ready_o,
@@ -96,14 +96,13 @@ module rsa_decryptor(
 
 	/* STATE MACHINE */
 	always_ff @(posedge clk) begin
-		if(rst) begin
+		if(rst) begin //reset
 			state <= 3'b000;
 			led_pass_o <= 1'b0;
 			led_fail_o <= 1'b0;
 			aes_ready_o <= 1'b0;
 			rsa_ready_o <= 1'b1;
-
-		end else begin
+		end else if(!stall) begin
 			case(state)
 				3'b000: begin //get all RSA stuff
 					if(count==268) begin //(4096+4096+384)/32
@@ -212,14 +211,14 @@ module rsa_decryptor(
 				3'b000: begin 
 					/* buffer encrypted RSA stuff */
 					if(rsa_valid_i==1'b1) begin
-						input_buff[count*32+:32] <= rsa_data_i;// convert to chunked
+						input_buff[count*32+:32] <= rsa_data_i;
 					end
 				end
 				
 				3'b001: begin
 					/* keyboard input */
 					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
-						kbd[(8*count)+:8] <= ps2_data_i; // convert to chunked
+						kbd[(8*count)+:8] <= ps2_data_i; 
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end
@@ -234,7 +233,7 @@ module rsa_decryptor(
 					/* decrypt RSA */
 					/* TODO */
 					if(aes_done && aes_valid) begin
-						output_buff[(count*32)+:32] <= aes_d; // convert to chunked
+						output_buff[(count*128)+:128] <= aes_d; // 128 bit chunks
 					end
 
 
@@ -243,7 +242,7 @@ module rsa_decryptor(
 				3'b100: begin
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
-						aes[(32*count)+:32] <= aes_data_i; // convert to chunked
+						aes[(32*count)+:32] <= aes_data_i;
 					end
 				end
 				

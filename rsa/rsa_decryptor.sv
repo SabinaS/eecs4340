@@ -205,10 +205,6 @@ module rsa_decryptor(
 	/* BUFFERS */
 	always_ff @(posedge clk) begin 
 		if(rst) begin
-			//exp_enc <= 'b0;
-			//mod_enc <= 'b0; 
-			//exp <= 'b0;
-			//mod <= 'b0;
 			kbd <= 'b0;
 			aes <= 'b0;
 		end else begin
@@ -217,7 +213,6 @@ module rsa_decryptor(
 					/* buffer encrypted RSA stuff */
 					if(rsa_valid_i==1'b1) begin
 						input_buff[count*32+:32] <= rsa_data_i;// convert to chunked
-						//input_buff[count] <= rsa_data_i;// convert to chunked
 					end
 				end
 				
@@ -225,7 +220,6 @@ module rsa_decryptor(
 					/* keyboard input */
 					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
 						kbd[(8*count)+:8] <= ps2_data_i; // convert to chunked
-						//kbd[count] <= ps2_data_i; // convert to chunked
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end
@@ -240,8 +234,7 @@ module rsa_decryptor(
 					/* decrypt RSA */
 					/* TODO */
 					if(aes_done && aes_valid) begin
-						output_buff[(count*128)+:128] <= aes_d; // convert to chunked
-						//output_buff[count] <= aes_d; // convert to chunked
+						output_buff[(count*32)+:32] <= aes_d; // convert to chunked
 					end
 
 
@@ -251,7 +244,6 @@ module rsa_decryptor(
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
 						aes[(32*count)+:32] <= aes_data_i; // convert to chunked
-						//aes[count] <= aes_data_i; // convert to chunked
 					end
 				end
 				
@@ -264,7 +256,6 @@ module rsa_decryptor(
 					/* Output Key */
 					if(out_ready_i) begin
 						out_data_o <= aes_d[(count*32)+:32];// convert to chunked
-						//out_data_o <= aes_d[count];// convert to chunked
 						out_valid_o <= 1'b1;
 					end
 				end

@@ -17,8 +17,27 @@ module aes_with_buffer(
 	output logic [31:0] data_out;//38 cycles later
 	output logic data_valid;
 
-	inv_aespipe aes_inst(.*); //ignore stall
 
+	logic [127:0] key_sub, aes_in_sub, data_out_sub;
+	logic [1:0] count_a,count_k,count_d;
+
+	logic [127:0] key_, aes_in_sub, data_out_a;
+
+	inv_aespipe aes_inst(.*); //ignore stall
+	always_ff @(posedge clk) begin
+		if(rst) begin
+			key_sub <= 'b0;
+			aes_in_sub <= 'b0;
+			data_out_sub <= 'b0;
+			count <= 'b0;
+			aes_ready <= 1'b0;
+			k_ready <= 1'b1;
+		end else begin
+			/* TODO */
+
+
+		end
+	end
 
 
 

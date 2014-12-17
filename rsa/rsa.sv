@@ -141,7 +141,7 @@ module rsa(
 					if(aes_kb_done && aes_kb_valid) begin
 						led_pass_o <= 1'b1;
 						state <= 3'b011;
-						start_aes_decrypt <= 1'b1;
+						//start_aes_decrypt <= 1'b1;
 					end else if(aes_kb_done && !aes_kb_valid) begin
 						led_fail_o <=1'b0;
 						state <= 3'b001;
@@ -150,7 +150,7 @@ module rsa(
 				end
 
 				3'b011: begin //decrypt 4096 RSA exp and 4096 RSA mod
-					start_aes_decrypt <= 1'b0;
+					//start_aes_decrypt <= 1'b0;
 					if(count == 101) begin //64-101 are good 
 						state <= 3'b100;
 						count <= 0;
@@ -236,7 +236,7 @@ module rsa(
 						aes_in <= exp_enc[(count*128)+:128];
 					end else if(count<64) begin //decrypt mod
 						aes_in <= mod_enc[((count-32)*128)+:128];
-					
+					end	
 					if(count>=38) begin 
 						output_buff[(count*128)+:128] <= aes_out; // 128 bit chunks
 					end

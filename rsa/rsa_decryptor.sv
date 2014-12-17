@@ -8,20 +8,20 @@ module rsa_decryptor(
 	out_data_o, out_valid_o, out_ready_i,
 	led_pass_o, led_fail_o
 );
-	input clk, rst, stall;
+	input logic clk, rst, stall;
 
-	input aes_valid_i, rsa_valid_i;
-	output aes_ready_o, rsa_ready_o;
-	input [31:0] aes_data_i, rsa_data_i;
+	input logic aes_valid_i, rsa_valid_i;
+	output logic aes_ready_o, rsa_ready_o;
+	input logic [31:0] aes_data_i, rsa_data_i;
 
-	input [7:0] ps2_data_i; 
-	input ps2_done, ps2_reset, ps2_valid_i;
+	input logic [7:0] ps2_data_i; 
+	input logic ps2_done, ps2_reset, ps2_valid_i;
 
-	output [31:0] out_data_o;
-	output out_valid_o;
-	input out_ready_i;
+	output logic [31:0] out_data_o;
+	output logic out_valid_o;
+	input logic out_ready_i;
 
-	output led_pass_o, led_fail_o;
+	output logic led_pass_o, led_fail_o;
 
 	logic [3:0] state;
 	/*
@@ -37,18 +37,23 @@ module rsa_decryptor(
 
 	/* RSA keys */
 	logic [8575:0] input_buff; //input buffer
-	logic [4095:0] exp_enc;
+	//logic [31:0] input_buff [0:267]; //input buffer
+	logic [4095:0] exp_enc; //convert to 
 	logic [4095:0] mod_enc;
 	logic [383:0] key_for_rsa;
-	assign exp_enc = input_buff[4095:0];
-	assign mod_enc = input_buff[8191:4096];
-	assign key_for_rsa = input_buff[8575:8191];
+	assign exp_enc = input_buff[4095:0]; 
+	assign mod_enc = input_buff[8191:4096]; 
+	assign key_for_rsa = input_buff[8575:8191]; 
 
 	/* aes key to decrypt rsa keys */
 	logic [127:0] aes_for_rsa;
 	logic start_kb_decrypt; 
 	logic start_rsa_decrypt;
+
 	logic [8575:0] output_buff;
+	//logic [31:0] output_buff [0:267];
+
+
 	logic [4095:0] exp; //output of modexp module
 	logic [4095:0] mod; //output of modexp module
 	assign exp = output_buff[4095:0];
@@ -56,12 +61,15 @@ module rsa_decryptor(
 
 	/* passphrase */
 	logic [447:0] kbd; //56 character max passcode
+	//logic [31:0] kbd [0:55]; //56 character max passcode
 
 	/* encrypted AES keys */
 	logic [127:0] aes; //buffer
+	//logic [31:0] aes [0:3]; //buffer
 
 	/* decrypted AES keys */
 	logic [127:0] aes_d; //output of AES module
+	//logic [31:0] aes_d [0:3]; //output of AES module
 
 	/* counts */
 	integer count; //register
@@ -197,10 +205,6 @@ module rsa_decryptor(
 	/* BUFFERS */
 	always_ff @(posedge clk) begin 
 		if(rst) begin
-			exp_enc <= 'b0;
-			mod_enc <= 'b0; 
-			exp <= 'b0;
-			mod <= 'b0;
 			kbd <= 'b0;
 			aes <= 'b0;
 		end else begin
@@ -208,14 +212,14 @@ module rsa_decryptor(
 				3'b000: begin 
 					/* buffer encrypted RSA stuff */
 					if(rsa_valid_i==1'b1) begin
-						input_buff[(count*32 + 32)-1:count*32] <= rsa_data_i;
+						input_buff[count*32+:32] <= rsa_data_i;// convert to chunked
 					end
 				end
 				
 				3'b001: begin
 					/* keyboard input */
 					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
-						kbd[(8*count)+8-1:(8*count)] <= ps2_data_i;
+						kbd[(8*count)+:8] <= ps2_data_i; // convert to chunked
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end
@@ -230,7 +234,7 @@ module rsa_decryptor(
 					/* decrypt RSA */
 					/* TODO */
 					if(aes_done && aes_valid) begin
-						output_buff[(count*128)+128-1:(count*128)] <= aes_d;
+						output_buff[(count*32)+:32] <= aes_d; // convert to chunked
 					end
 
 
@@ -239,7 +243,7 @@ module rsa_decryptor(
 				3'b100: begin
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
-						aes[(32*count) + 32 - 1: (32*count)] <= aes_data_i;
+						aes[(32*count)+:32] <= aes_data_i; // convert to chunked
 					end
 				end
 				
@@ -251,7 +255,7 @@ module rsa_decryptor(
 				3'b110: begin
 					/* Output Key */
 					if(out_ready_i) begin
-						out_data_o <= aes_d[(count*32) + 32 - 1: (count*32)];
+						out_data_o <= aes_d[(count*32)+:32];// convert to chunked
 						out_valid_o <= 1'b1;
 					end
 				end

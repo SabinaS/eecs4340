@@ -27,7 +27,7 @@ md5bench:
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice md5/*.sv memory/*.sv memory/altsyncram.v -o md5testbench.exe 
 
 rsabench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice rsa/*.sv -o rsatestbench.exe 
+	make -C rsa/
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd
@@ -35,3 +35,4 @@ wave:
 
 clean:
 	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *exe *.key *.exe.vdb
+	make -C rsa/ clean

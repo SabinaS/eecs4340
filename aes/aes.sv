@@ -12,6 +12,6 @@ module aes(
 
 	inv_aespipe aes_inst(.*); //ignore stall
 	
-
+endmodule
 
 

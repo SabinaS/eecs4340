@@ -10,22 +10,49 @@
 
 #include "aes.h"
 
-void md5hash(char *src, char *res, int in_len) {
-	MD5(src, in_len, res);
+#define MD5_OUT_SIZE 16
+
+void md5hash(char *src, svLogicPackedArrRef res, int in_len) {
+	char *res_char = malloc(sizeof *res_char * MD5_OUT_SIZE);
+	MD5(src, in_len, res_char);
+
+	SV_LOGIC_PACKED_ARRAY(128, res_log);
+	memcpy(&res_log, res_char, MD5_OUT_SIZE);
+
+	printf("MD5::\n");
+	unsigned i;
+	for (i = 0; i < in_len; ++i) {
+		printf("%x ", ((char *)src)[i] & 0xff);
+	}
+	printf("\n");
+	for (i = 0; i < MD5_OUT_SIZE; ++i) {
+		printf("%x ", ((char *)res)[i] & 0xff);
+	}
+	printf("\n");
+
+	res = res_log;
+
+	free(res_char);
 }
 
-void aes_encrypt(char* key, char *src, svLogicPackedArrRef res, int in_len /* bytes */) {
+void aes_encrypt(svLogicPackedArrRef key, svLogicPackedArrRef src,
+		svLogicPackedArrRef res, int in_len /* bytes */) {
+printf("aes marker %p %p\n", key, src);
+	char *key_char = malloc(sizeof *key_char * in_len);
 	char *res_char = malloc(sizeof *res_char * in_len);
+	memmove(key_char, key, in_len);
 	memmove(res_char, src, in_len);
 
 	/* in-place modification of res */
-	aes_encrypt_block(res_char, key);
-
+	aes_encrypt_block(res_char, key_char);
 	/* copy it back to the register */
 	SV_LOGIC_PACKED_ARRAY(4096, res_log);
 	memcpy(&res_log, res_char, in_len);
 
 	res = res_log;
+
+	free(res_char);
+	free(key_char);
 }
 
 RSA *rsa_info = NULL;
@@ -63,12 +90,4 @@ void generate_rsa_keys_lib(svLogicPackedArrRef modulus_out,
 
 	modulus_out = modulus;
 	private_key_out = private_key;
-}
-
-svLogicPackedArrRef retrieve_modulus() {
-	return &modulus;
-}
-
-svLogicPackedArrRef retrieve_private_key() {
-	return &private_key;
 }

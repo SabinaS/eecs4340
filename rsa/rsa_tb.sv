@@ -1,5 +1,7 @@
-import "DPI" function void md5hash(input string src, res, int in_len);
-import "DPI" function void aes_encrypt(input string key, to_encrypt,
+import "DPI" function void md5hash(input string src,
+	output res,
+	input int in_len);
+import "DPI" function void aes_encrypt(input key, to_encrypt,
 	output encrypted_message,
 	input int in_len);
 import "DPI" function void generate_rsa_keys_lib(output logic[4095:0] modulus,
@@ -48,7 +50,7 @@ class testing_env;
 	int use_pp_length;
 
 	/* make sure there's space for the md5 hash */
-	logic [127:0] passphrase_md5 = "0123456789ABCDEFh";
+	logic [127:0] passphrase_md5;
 	rand logic [127:0] random_md5_pad;
 
 	logic [383:0] key_header;
@@ -125,11 +127,10 @@ class testing_env;
 		logic [127:0] zero_padding = '0;
 		logic [255:0] encrypted_message;
 
-		md5hash(correct_passphrase, passphrase_md5, correct_passphrase.len());
+		md5hash(correct_passphrase, passphrase_md5, passphrase_length);
 		key_aes_rsa = {passphrase_md5, random_md5_pad};
 		key_header_to_encrypt = {passphrase_md5, zero_padding};
-		aes_encrypt(string'(key_aes_rsa), string'(key_header_to_encrypt),
-			encrypted_message, 32);
+		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 32);
 		key_header = {encrypted_message, random_md5_pad};
 	endfunction
 

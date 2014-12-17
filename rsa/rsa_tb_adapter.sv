@@ -4,7 +4,7 @@ module rsa_tb_adapter(
 	rsa_ifc.dut dut 
 );
 
-	rsa_decryptor magical_box (
+	rsa magical_box (
 		.clk(dut.clk),
 		.rst(dut.rst),
 		.stall(dut.stall),

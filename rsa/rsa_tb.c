@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
@@ -12,32 +13,38 @@
 
 #define MD5_OUT_SIZE 16
 
-void md5hash(char *src, svLogicPackedArrRef res, int in_len) {
-	char *res_char = malloc(sizeof *res_char * MD5_OUT_SIZE);
-	MD5(src, in_len, res_char);
+void md5hash(char *src, svBitPackedArrRef res, int in_len) {
+	char *res_char = malloc(MD5_OUT_SIZE);
+	memset(res_char, 0, MD5_OUT_SIZE);
 
-	SV_LOGIC_PACKED_ARRAY(128, res_log);
-	memcpy(&res_log, res_char, MD5_OUT_SIZE);
+	/* hash it doe */
+	EVP_MD *md = EVP_md5();
+	EVP_MD_CTX *ctx = EVP_MD_CTX_create();
 
-	printf("MD5::\n");
+	EVP_DigestInit_ex(ctx, md, NULL);
+	EVP_DigestUpdate(ctx, src, in_len);
+	EVP_DigestFinal_ex(ctx, res_char, &in_len);
+
+	EVP_MD_CTX_destroy(ctx);
+
+	memcpy(res, res_char, MD5_OUT_SIZE);
+
 	unsigned i;
-	for (i = 0; i < in_len; ++i) {
-		printf("%x ", ((char *)src)[i] & 0xff);
+	printf("MD5::\n");
+	for (i = 0; i < (unsigned long) in_len; ++i) {
+		printf("%02x ", ((char *)src)[i] & 0xff);
 	}
 	printf("\n");
 	for (i = 0; i < MD5_OUT_SIZE; ++i) {
-		printf("%x ", ((char *)res)[i] & 0xff);
+		printf("%02x ", ((char *)res)[i] & 0xff);
 	}
 	printf("\n");
-
-	res = res_log;
 
 	free(res_char);
 }
 
-void aes_encrypt(svLogicPackedArrRef key, svLogicPackedArrRef src,
+void aes_encrypt(svBitPackedArrRef key, svBitPackedArrRef src,
 		svLogicPackedArrRef res, int in_len /* bytes */) {
-printf("aes marker %p %p\n", key, src);
 	char *key_char = malloc(sizeof *key_char * in_len);
 	char *res_char = malloc(sizeof *res_char * in_len);
 	memmove(key_char, key, in_len);
@@ -45,22 +52,16 @@ printf("aes marker %p %p\n", key, src);
 
 	/* in-place modification of res */
 	aes_encrypt_block(res_char, key_char);
-	/* copy it back to the register */
-	SV_LOGIC_PACKED_ARRAY(4096, res_log);
-	memcpy(&res_log, res_char, in_len);
-
-	res = res_log;
+	memcpy(res, res_char, in_len);
 
 	free(res_char);
 	free(key_char);
 }
 
 RSA *rsa_info = NULL;
-SV_LOGIC_PACKED_ARRAY(4096, modulus);
-SV_LOGIC_PACKED_ARRAY(4096, private_key);
 
-void generate_rsa_keys_lib(svLogicPackedArrRef modulus_out,
-		svLogicPackedArrRef private_key_out) {
+void generate_rsa_keys_lib(svBitPackedArrRef modulus,
+		svBitPackedArrRef private_key) {
 	if (rsa_info != NULL) {
 		RSA_free(rsa_info);
 		rsa_info = NULL;
@@ -74,8 +75,8 @@ void generate_rsa_keys_lib(svLogicPackedArrRef modulus_out,
 		return;
 	}
 
-	memset(&private_key, 0, 512); /* 4096 / 8 */
-	memcpy(&private_key, rsa_info->n->d, BN_num_bytes(rsa_info->n));
+	memset(private_key, 0, 512); /* 4096 / 8 */
+	memcpy(private_key, rsa_info->n->d, BN_num_bytes(rsa_info->n));
 
 
 	/* copy private key */
@@ -85,9 +86,24 @@ void generate_rsa_keys_lib(svLogicPackedArrRef modulus_out,
 		return;
 	}
 
-	memset(&modulus, 0, 512); /* 4096 / 8 */
-	memcpy(&private_key, rsa_info->d->d, BN_num_bytes(rsa_info->d));
-
-	modulus_out = modulus;
-	private_key_out = private_key;
+	memset(modulus, 0, 512); /* 4096 / 8 */
+	memcpy(modulus, rsa_info->d->d, BN_num_bytes(rsa_info->d));
 }
+
+void printout_c (void *ptr, int len) {
+	int i;
+	for (i = 0; i < len; ++i) {
+		printf("%02x ", ((char *)ptr)[i] & 0xff);
+	}
+	printf("\n");
+}
+
+#define printout(num) \
+	void printout_##num(svBitPackedArrRef ptr) {\
+		printf("\nentering printout_%s %p\n", #num, ptr); \
+		printout_c(ptr, num / 8);\
+	}
+
+printout(128);
+printout(256);
+printout(384);

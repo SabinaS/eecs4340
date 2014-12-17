@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module rsa_decryptor(
+module rsa(
 	clk, rst, stall,
 	aes_data_i, aes_valid_i, aes_ready_o,
 	rsa_data_i, rsa_valid_i, rsa_ready_o,
@@ -37,9 +37,10 @@ module rsa_decryptor(
 
 	/* RSA keys */
 	logic [8575:0] input_buff; //input buffer
-	//logic [31:0] input_buff [0:267]; //input buffer
+
 	logic [4095:0] exp_enc; //convert to 
 	logic [4095:0] mod_enc;
+
 	logic [383:0] key_for_rsa;
 	assign exp_enc = input_buff[4095:0]; 
 	assign mod_enc = input_buff[8191:4096]; 
@@ -51,7 +52,6 @@ module rsa_decryptor(
 	logic start_rsa_decrypt;
 
 	logic [8575:0] output_buff;
-	//logic [31:0] output_buff [0:267];
 
 
 	logic [4095:0] exp; //output of modexp module
@@ -61,15 +61,12 @@ module rsa_decryptor(
 
 	/* passphrase */
 	logic [447:0] kbd; //56 character max passcode
-	//logic [31:0] kbd [0:55]; //56 character max passcode
 
 	/* encrypted AES keys */
 	logic [127:0] aes; //buffer
-	//logic [31:0] aes [0:3]; //buffer
 
 	/* decrypted AES keys */
 	logic [127:0] aes_d; //output of AES module
-	//logic [31:0] aes_d [0:3]; //output of AES module
 
 	/* counts */
 	integer count; //register
@@ -85,25 +82,31 @@ module rsa_decryptor(
 	logic modexp_done; //modexp done NECESSARY?
 	logic modexp_valid; //modexp valid
 
-	logic start_aes_decrypt;
+	//logic start_aes_decrypt;
+	logic [127:0] aes_in;
+	logic [127:0] aes_out;
 
 
-	aes_kb aes_kb_inst(.in_buf(key_for_rsa),.key(aes_for_rsa),.valid(aes_kb_valid), .done(aes_kb_done), .start(start_kb_decrypt), .kb(kbd), .*);
-	//aes_decrypt aes_inst(.start(start_aes_decrypt), .*);
-	modexp modexp_inst (.exp(exp), .mod(mod), .key_i(aes), .done(modexp_done), .valid(modexp_valid), .start(start_rsa_decrypt), .key_o(aes_d),.*);
+	aes_kb aes_kb_inst(.in_buf(key_for_rsa),.key(aes_for_rsa),
+		.valid(aes_kb_valid), .done(aes_kb_done), 
+		.start(start_kb_decrypt), .kb(kbd), .*);
+	modexp modexp_inst (.exp(exp), .mod(mod), .key_i(aes), 
+		.done(modexp_done), .valid(modexp_valid), 
+		.start(start_rsa_decrypt), .key_o(aes_d),.*);
+	aes aes_inst(.key(aes_for_rsa),.aes_in(aes_in),
+		.data_out(aes_out),.*);
 
 
 
 	/* STATE MACHINE */
 	always_ff @(posedge clk) begin
-		if(rst) begin
+		if(rst) begin //reset
 			state <= 3'b000;
 			led_pass_o <= 1'b0;
 			led_fail_o <= 1'b0;
 			aes_ready_o <= 1'b0;
 			rsa_ready_o <= 1'b1;
-
-		end else begin
+		end else if(!stall) begin
 			case(state)
 				3'b000: begin //get all RSA stuff
 					if(count==268) begin //(4096+4096+384)/32
@@ -138,7 +141,7 @@ module rsa_decryptor(
 					if(aes_kb_done && aes_kb_valid) begin
 						led_pass_o <= 1'b1;
 						state <= 3'b011;
-						start_aes_decrypt <= 1'b1;
+						//start_aes_decrypt <= 1'b1;
 					end else if(aes_kb_done && !aes_kb_valid) begin
 						led_fail_o <=1'b0;
 						state <= 3'b001;
@@ -147,15 +150,13 @@ module rsa_decryptor(
 				end
 
 				3'b011: begin //decrypt 4096 RSA exp and 4096 RSA mod
-					start_aes_decrypt <= 1'b0;
-					if(count == 64) begin
+					//start_aes_decrypt <= 1'b0;
+					if(count == 101) begin //64-101 are good 
 						state <= 3'b100;
 						count <= 0;
 						aes_ready_o <= 1'b1;
 					end else begin
-						if(aes_done && aes_valid) begin
-							count <= count + 1;
-						end
+						count <= count + 1;
 					end
 				end
 
@@ -175,7 +176,7 @@ module rsa_decryptor(
 				3'b101: begin /* decrypt AES key */
 					start_rsa_decrypt <= 1'b0;
 					/* if AES done */
-					if(aes_done && aes_valid) begin
+					if(aes_done && aes_valid) begin//CHANGE to count from 48 to 
 						state <= 3'b110;
 						count <= 0;
 					end 
@@ -205,10 +206,6 @@ module rsa_decryptor(
 	/* BUFFERS */
 	always_ff @(posedge clk) begin 
 		if(rst) begin
-			//exp_enc <= 'b0;
-			//mod_enc <= 'b0; 
-			//exp <= 'b0;
-			//mod <= 'b0;
 			kbd <= 'b0;
 			aes <= 'b0;
 		end else begin
@@ -216,60 +213,58 @@ module rsa_decryptor(
 				3'b000: begin 
 					/* buffer encrypted RSA stuff */
 					if(rsa_valid_i==1'b1) begin
-						input_buff[count*32+:32] <= rsa_data_i;// convert to chunked
-						//input_buff[count] <= rsa_data_i;// convert to chunked
+						input_buff[count*32+:32] <= rsa_data_i;
 					end
 				end
 				
-				3'b001: begin
+				3'b001: begin //buffer keyboard input 
 					/* keyboard input */
 					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
-						kbd[(8*count)+:8] <= ps2_data_i; // convert to chunked
-						//kbd[count] <= ps2_data_i; // convert to chunked
+						kbd[(8*count)+:8] <= ps2_data_i; 
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end
 				end
 
-				3'b010: begin
-					/* Validate keyboard input */
+				3'b010: begin //decrypt AES key from KB (validate input)
 					/* NONE */
 				end
 				
-				3'b011: begin
+				3'b011: begin //decrypt 4096 RSA exp and 4096 RSA mod
 					/* decrypt RSA */
-					/* TODO */
-					if(aes_done && aes_valid) begin
-						output_buff[(count*128)+:128] <= aes_d; // convert to chunked
-						//output_buff[count] <= aes_d; // convert to chunked
+					if(count<32) begin //decrypt exp
+						aes_in <= exp_enc[(count*128)+:128];
+					end else if(count<64) begin //decrypt mod
+						aes_in <= mod_enc[((count-32)*128)+:128];
+					end	
+					if(count>=38) begin 
+						output_buff[(count*128)+:128] <= aes_out; // 128 bit chunks
 					end
 
 
 				end
 				
-				3'b100: begin
+				3'b100: begin //buffer encrypted AES keys
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
-						aes[(32*count)+:32] <= aes_data_i; // convert to chunked
-						//aes[count] <= aes_data_i; // convert to chunked
+						aes[(32*count)+:32] <= aes_data_i;
 					end
 				end
 				
-				3'b101: begin
+				3'b101: begin /* decrypt AES key */
 					/* NONE */
 					/* decrpyt AES key */
 				end
 				
-				3'b110: begin
+				3'b110: begin /* send to AES data module */
 					/* Output Key */
 					if(out_ready_i) begin
 						out_data_o <= aes_d[(count*32)+:32];// convert to chunked
-						//out_data_o <= aes_d[count];// convert to chunked
 						out_valid_o <= 1'b1;
 					end
 				end
 				
-				3'b111: begin
+				3'b111: begin /* wait to go back to state 4 */
 					/* NONE */
 					/* wait for downstream to be ready again */
 				end

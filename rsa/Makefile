@@ -8,7 +8,7 @@ NATIVE_FILES = rsa_tb.c
 # need to go up a dir first.  don't ask.
 NATIVE_LIBS = -L../tb_aux/ -laesdecrypt -lssl -lcrypto
 
-MODULES = rsa_decryptor.sv \
+MODULES = rsa.sv \
           modexp.sv \
           aes_kb.sv \
           rsa_tb_adapter.sv \

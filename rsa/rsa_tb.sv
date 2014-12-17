@@ -1,11 +1,15 @@
 import "DPI" function void md5hash(input string src,
-	output res,
+	output bit[127:0] res,
 	input int in_len);
-import "DPI" function void aes_encrypt(input key, to_encrypt,
-	output encrypted_message,
+import "DPI" function void aes_encrypt(input bit [255:0] key, 
+	input bit [255:0] to_encrypt,
+	output bit [255:0] encrypted_message,
 	input int in_len);
-import "DPI" function void generate_rsa_keys_lib(output logic[4095:0] modulus,
+import "DPI" function void generate_rsa_keys_lib(output bit[4095:0] modulus,
 	private_key);
+import "DPI" function void printout_128(input bit[127:0] ptr);
+import "DPI" function void printout_256(input bit[255:0] ptr);
+import "DPI" function void printout_384(input bit[383:0] ptr);
 
 class transaction;
 	// vars
@@ -50,17 +54,17 @@ class testing_env;
 	int use_pp_length;
 
 	/* make sure there's space for the md5 hash */
-	logic [127:0] passphrase_md5;
-	rand logic [127:0] random_md5_pad;
+	bit [127:0] passphrase_md5 = '0;
+	rand bit [127:0] random_md5_pad;
 
-	logic [383:0] key_header;
-	logic [255:0] key_aes_rsa;
-	logic [255:0] key_header_to_encrypt;
-	logic [8191:0] rsa_info;
-	logic [8575:0] full_data;
+	bit [383:0] key_header;
+	bit [255:0] key_aes_rsa;
+	bit [255:0] key_header_to_encrypt;
+	bit [8191:0] rsa_info;
+	bit [8575:0] full_data;
 
-	logic [4095:0] modulus = '0; /* modulus */
-	logic [4095:0] private_key;
+	bit [4095:0] modulus = '0; /* modulus */
+	bit [4095:0] private_key;
 
 	int data_selector = 0;
 	int incoming_data_selector = 0;
@@ -124,14 +128,26 @@ class testing_env;
 	endfunction
 
 	function void generate_key_header();
-		logic [127:0] zero_padding = '0;
-		logic [255:0] encrypted_message;
+		bit [127:0] zero_padding = '0;
+		bit [255:0] encrypted_message = '0;
 
 		md5hash(correct_passphrase, passphrase_md5, passphrase_length);
 		key_aes_rsa = {passphrase_md5, random_md5_pad};
 		key_header_to_encrypt = {passphrase_md5, zero_padding};
 		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 32);
 		key_header = {encrypted_message, random_md5_pad};
+/*		printout_128(passphrase_md5);
+		printout_128(random_md5_pad);
+		printout_256(key_aes_rsa);
+		printout_256(key_header_to_encrypt);
+		printout_256(encrypted_message);
+		printout_384(key_header);
+		$display("passphrase_md5: %x", passphrase_md5);
+		$display("random_md5:     %x", random_md5_pad);
+		$display("key_aes_rsa:    %x", key_aes_rsa);
+		$display("to_encrypt:     %x", key_header_to_encrypt);
+		$display("enc message:    %x", encrypted_message);
+		*/
 	endfunction
 
 	function void generate_rsa_key();
@@ -140,6 +156,7 @@ class testing_env;
 	endfunction
 
 	function void handle_reset();
+		randomize();
 		setup_keys_passphrases();
 		generate_key_header();
 		generate_rsa_key();
@@ -192,7 +209,6 @@ program rsa_tb (rsa_ifc.bench ds);
 
 		// Iterate iter number of cycles
 		repeat (v.iter) begin
-			v.randomize();
 			if(v.get_reset() || check_done) begin
 				check_done <= 1'b0;
 				ds.cb.rst <= 1'b1;

@@ -85,10 +85,12 @@ module aes_kb(
     		case(state)
     			2'b00: begin
     				if(start) begin
-    					state <= 2'b00;
+    					state <= 2'b01;
     					count <= 0;
     				end else begin
     					/* do nothing */
+    					done <= 1'b0;
+    					valid <= 1'b0;
     				end
     			end
 
@@ -99,13 +101,17 @@ module aes_kb(
     				end else begin
     					if(count==16) begin
 	    					/* wait until done */
+	    					if(md5_done) begin //start counting, valid data
+	    									   //was just put on AES
+	    						state <= 2'b10;
+	    						count <= 0; //TODO should this be 1? 
+	    					end
     					end else begin
     						/* push data into md5 */
 							md5_wa <= count[3:0];
 							md5_data <= kbd[count];
 							md5_w <= 1'b1;
 							count <= count + 1;
-
     					end
     				end
     			end
@@ -121,7 +127,15 @@ module aes_kb(
     			end
 
     			2'b11: begin /* after 38 cycles, compare to expected */
-
+    				/* make comparison */
+    				/* TODO output key if valid */
+    				if(1'b1) begin //correct key
+    					valid <= 1'b1;
+    				end else begin //incorrect key
+    					valid <= 1'b0;
+    				end
+    				done <= 1'b1;
+    				state <= 2'b00;
     			end
 	    	endcase
     	end

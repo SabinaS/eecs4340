@@ -27,7 +27,7 @@ output done_o, rst_o;
 /* State Registers */
 logic count;
 logic[7:0] data; 
-logic init, shift, outpt, convert; 
+logic init, shift, out_put, convert; 
 
 /* Behavior */
 always_ff @(posedge clk) begin
@@ -42,7 +42,7 @@ always_ff @(posedge clk) begin
 		
 		init <= '1;
 		shift <= '0;
-		outpt <= '0;
+		out_put <= '0;
 		convert <= '0; 
 	end 
 	
@@ -53,8 +53,8 @@ always_ff @(posedge clk) begin
 	end 
 	if (shift) begin
 		/* ToDo */
-		data[count] = dat;
-		count = count + '1;
+		data[count] <= dat;
+		count <= count + '1;
 	end
 	
 	 

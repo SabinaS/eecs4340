@@ -36,28 +36,28 @@ module rsa(
 	*/
 
 	/* RSA keys */
-	logic [8575:0] input_buff; //input buffer
+	logic [8319:0] input_buff; //input buffer
 
 	logic [4095:0] exp_enc; //convert to 
 	logic [4095:0] mod_enc;
 
-	logic [383:0] key_for_rsa;
+	logic [127:0] key_for_rsa;
 	assign exp_enc = input_buff[4095:0]; 
 	assign mod_enc = input_buff[8191:4096]; 
-	assign key_for_rsa = input_buff[8575:8191]; 
+	assign key_for_rsa = input_buff[8319:8192]; 
 
 	/* aes key to decrypt rsa keys */
 	logic [127:0] aes_for_rsa;
 	logic start_kb_decrypt; 
 	logic start_rsa_decrypt;
 
-	logic [8575:0] output_buff;
+	logic [8191:0] output_buff;
 
 
 	logic [4095:0] exp; //output of modexp module
 	logic [4095:0] mod; //output of modexp module
 	assign exp = output_buff[4095:0];
-	assign mod = output_buff[8575:4096];
+	assign mod = output_buff[8191:4096];
 
 	/* passphrase */
 	logic [447:0] kbd; //56 character max passcode
@@ -110,7 +110,7 @@ module rsa(
 		end else if(!stall) begin
 			case(state)
 				3'b000: begin //get all RSA stuff
-					if(count==66) begin //(4096+4096+256)/128
+					if(count==65) begin //(4096+4096+128)/128
 						state <= 3'b001;
 						count <= 0;
 						rsa_ready_o<=1'b1;

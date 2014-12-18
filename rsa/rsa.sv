@@ -84,17 +84,18 @@ module rsa(
 
 	//logic start_aes_decrypt;
 	logic [127:0] aes_in;
+	logic [127:0] key_in;
 	logic [127:0] aes_out;
 
 
 	aes_kb aes_kb_inst(.in_buf(key_for_rsa),.key(aes_for_rsa),
 		.valid(aes_kb_valid), .done(aes_kb_done), 
 		.start(start_kb_decrypt), .kb(kbd), .*);
+	aes aes_inst(.key(key_in), .aes_in(aes_in), .data_out(aes_out), .*);
 	modexp modexp_inst (.exp(exp), .mod(mod), .key_i(aes), 
 		.done(modexp_done), .valid(modexp_valid), 
 		.start(start_rsa_decrypt), .key_o(aes_d),.*);
-	aes aes_inst(.key(aes_for_rsa),.aes_in(aes_in),
-		.data_out(aes_out),.*);
+
 
 
 

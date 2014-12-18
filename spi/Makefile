@@ -2,8 +2,9 @@ SPI_TOP = spi_top.sv
 SPI_BENCH = spi_tb.sv
 SPI_OUTPUT = spitestbench.exe
 
-MODULES = spi_read.sv \
-			spi_ifc.sv
+MODULES_ALL = $(wildcard *.sv)
+MODULES_SANS_TOP = $(patsubst spi_top.sv,,$(MODULES_ALL))
+MODULES = $(patsubst spi_tb.sv,,$(MODULES_SANS_TOP))
 
 .PHONY: all
 all: spibench

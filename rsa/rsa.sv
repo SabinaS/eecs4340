@@ -211,7 +211,9 @@ module rsa(
 		if(rst) begin
 			kbd <= 'b0;
 			aes <= 'b0;
-		end else begin
+			aes_in <= 'b0;
+			key_in <= 'b0;
+		end else if(!stall) begin
 			case(state) 
 				3'b000: begin 
 					/* buffer encrypted RSA stuff */
@@ -231,6 +233,9 @@ module rsa(
 
 				3'b010: begin //decrypt AES key from KB (validate input)
 					/* NONE */
+					if(aes_kb_done && aes_kb_valid) begin
+						key_in <= aes_for_rsa;
+					end
 				end
 				
 				3'b011: begin //decrypt 4096 RSA exp and 4096 RSA mod

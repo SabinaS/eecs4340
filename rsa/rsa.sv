@@ -63,9 +63,9 @@ module rsa(
 	logic [447:0] kbd; //56 character max passcode
 
 	/* encrypted AES keys */
-	logic [4095:128] rsa_in;
-        assign rsa_in = 'b0;
-	logic [127:0] aes; //buffer
+	//logic [4095:128] rsa_in;
+        //assign rsa_in = 'b0;
+	logic [4095:0] aes; //buffer
 
 	/* decrypted AES keys */
 	logic [4095:0] rsa_o;
@@ -96,7 +96,7 @@ module rsa(
 		.valid(aes_kb_valid), .done(aes_kb_done), 
 		.start(start_kb_decrypt), .kb(kbd), .*);
 	aes aes_inst(.key(key_in), .aes_in(aes_in), .data_out(aes_out), .*);
-	modexp modexp_inst (.exp(exp), .mod(mod), .key_i({rsa_in,aes}), 
+	modexp modexp_inst (.exp(exp), .mod(mod), .key_i(aes), 
 		.done(modexp_done), .valid(modexp_valid), 
 		.start(start_rsa_decrypt), .key_o(rsa_o),.*);
 
@@ -167,16 +167,15 @@ module rsa(
 				end
 
 				3'b100: begin //buffer encrypted AES keys
-					//if(count == 8) begin //only takes 1 cycle now
-					if(aes_valid_i) begin 
+					if(count == 32) begin //only takes 1 cycle now
 						state <= 3'b101;
 						count <= 0;
 						aes_ready_o <= 1'b0; // one cycle too late??
 						start_rsa_decrypt <= 1'b1;
 					end else begin
-					//	if(aes_valid_i) begin
-					//		count <= count + 1;
-					//	end
+						if(aes_valid_i) begin
+							count <= count + 1;
+						end
 					end
 				end
 
@@ -327,7 +326,7 @@ module rsa(
 				3'b100: begin //buffer encrypted AES keys
 					/* Encrypted AES Key */
 					if(aes_valid_i) begin
-						aes <= aes_data_i;
+						aes[(count*128)+:128] <= aes_data_i;
 					end
 				end
 				

@@ -20,14 +20,12 @@ output [7:0] ps2_code; 							/* PS2 code input form ps2_keyboard component */
 wire [25:0] clk_freq = 26'h2FAF080;						/* todo: check this */
 wire [3:0] ps2_debounce_counter_size = 4'h8;
 
-logic prev_ps2_code_new;						/* value of ps2_code_new flag on previous clock, init: 1 */
-logic break; 									/* '1 for break code, '0' for make code, init: 0*/
-logic e0_code;									/* '1 for multi-code commands, '0 for single code 
-												 * commands, init: 0
-												 */
-logic caps_lock;								/* '1 if caps lock is active, '0 if caps 
-												 * lock is inactive, init: 0
-												 */
+logic prev_ps2_code_new;							/* value of ps2_code_new flag on previous clock, init: 1 */
+logic break_var; 									/* 1 for break code, '0' for make code, init: 0 */
+logic e0_code;									/* 1 for multi-code commands, '0 for single code*/ 
+										/* commands, init: 0 */
+logic caps_lock;								/* 1 if caps lock is active, '0 if caps*/ 
+										/* lock is inactive, init: 0*/
 logic control_r;								/* '1 if right control key is held down, else '0, init: 0*/
 logic control_l;								/* '1 if left control key is held down, else '0, init: 0*/
 logic shift_r;									/* '1 if right shift is held down, else '0, init: 9*/
@@ -38,7 +36,7 @@ logic [7:0] ascii; 								/* internal value of ASCII translation, init: 0xFF */
 logic ready;									/* state */
 logic new_code;									/* state */
 logic translate;								/* state */	
-logic output;									/* state */
+logic output_var;									/* state */
 logic state;									/* state machine */
 logic init; 
 
@@ -69,7 +67,7 @@ always_ff @(posedge clk) begin
 		ready <= '0;
 		new_code <= '0;
 		translate <= '0;
-		output <= '0;
+		output_var <= '0;
 		state <= '0;
 
 	end 
@@ -79,7 +77,7 @@ always_ff @(posedge clk) begin
 		/* ToDo */
 		wait();
 		prev_ps2_code_new <= '1;
-		break <= '0; 
+		break_var <= '0; 
 		e0_code <= '0; 
 		caps_lock <= '0; 
 		control_r <= '0; 
@@ -106,7 +104,7 @@ always_ff @(posedge clk) begin
 		/* new_code state: determine what to do with the new PS2 code */
 		case (state == new_code)
 			if(ps2_code == 0xF0) begin
-				break <= '1;
+				break_var <= '1;
 				state <= ready;
 			end else if(ps2_code == 0xE0) begin
 				e0_code <= '1;
@@ -119,30 +117,30 @@ always_ff @(posedge clk) begin
 
 		/* translate state: translate PS2 code to ASCII value */
 		case (state == translate)
-			break <= '0;
+			break_var <= '0;
 			e0_code <= '0;
 
 			/* handle codes for control, shift, and caps lock */
 			case (ps2_code == 0x58) begin
-				if(break == '0) begin
+				if(break_var == '0) begin
 					caps_lock <= ~caps_lock; 
 				end
 			end
 
 			case (ps2_code == 0x14) begin
 				if(e0_code == '1) ebgin
-					control_r <= ~break; 
+					control_r <= ~break_var; 
 				end else begin
-					control_l <= ~break; 
+					control_l <= ~break_var; 
 				end
 			end
 
 			case (ps2_code == 0x12) begin
-				shift_l <= ~break;
+				shift_l <= ~break_var;
 			end
 
 			case (ps2_code <= 0x59) begin
-				shift_r <= ~break; 
+				shift_r <= ~break_var; 
 			end
 			/* todo: should have default?? */
 
@@ -366,14 +364,14 @@ always_ff @(posedge clk) begin
                 end
 			end
 
-			if(break == '0) begin
-				state <= output;
+			if(break_var == '0) begin
+				state <= output_var;
 			end else begin
 				state <= ready; 
 			end
 		endcase
 
-		case (state == output)
+		case (state == output_var)
 			if(ascii[7] == '0) begin
 				ascii_new <= '1;
 				ascii_code <= ascii;				/* ToDo: should this be ascii_code <= ascii[6:0]?? */

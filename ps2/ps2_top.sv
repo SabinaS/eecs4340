@@ -25,7 +25,7 @@ output valid;
 
 /* Variables */
 logic [25:0] clk_freq = 26'h2FAF080;
-logic [3:0] debounce_counter_size = 4'h8; 
+wire [3:0] debounce_counter_size = 4'h8; 
 logic [1:0] sync_ffs;
 logic ps2_clk_int;
 logic ps2_data_int;

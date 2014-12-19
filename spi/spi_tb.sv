@@ -82,7 +82,6 @@ program spi_tb (spi_ifc.bench ds);
 	// Drive inputs for next cycles
 	ds.cb.rst <= t.reset; 
 
-
 	repeat(10) begin
 	ds.cb.rst <= 1'b1;
 	@(ds.cb);

@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 /* 
  * Owner: Tim Paine
  */
@@ -33,7 +35,7 @@ module rsa_directed_test();
     #1 clk = 1;
     #1 clk = 0;
     rst = 0;
-    rsa_data_i = 128'h1111111111111111;
+    rsa_data_i = 128'h11111111111111111111111111111111;
     rsa_valid_i = 1;
 
     for(i = 0;i<66;i=i+1) begin

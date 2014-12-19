@@ -61,7 +61,7 @@ module aes_kb(
     md5 md5_inst(.writeaddr(md5_wa), .writedata(md5_data),.write(md5_w),
     	.start(md5_start),.done(md5_done),.digest0(aes_key),.reset(rst),.*);
     aes aes_inst(.aes_in(data), .key(aes_key), .data_out(aes_key_d), .*);
-    md5_padder_length md5_pl_inst(.in(kbd), .out(mpl));
+    md5_padder_length md5_pl_inst(.in(kb), .out(mpl));
 
     /* when start goes high, run the AES decryption
      * when done, raise the output done signal

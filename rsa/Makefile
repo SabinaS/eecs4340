@@ -67,4 +67,4 @@ wave:
 
 clean:
 	make -C tb_aux/ clean
-	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *.exe *.key vc_hdrs.h
+	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *.exe *.key vc_hdrs.h *.vdb

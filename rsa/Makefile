@@ -31,6 +31,9 @@ help:
 	echo " clean    - cleans testbench and intermediate files" ;\
 	echo " help     - show this information";\
 
+modexpbench: 
+	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice modexp.sv modexp_directed_tb.sv -o modexp_test.exe
+
 rsabench: aes_lib
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(RSA_TOP) $(RSA_IFC) $(RSA_BENCH) \
 		$(MODULES) $(NATIVE_FILES) $(NATIVE_LIBS) -o $(RSA_OUTPUT)

@@ -54,7 +54,7 @@ module modexp(
 			valid <= 1'b0;
 		end else if(!stall) begin
 			if(run) begin
-				if(i==4095) begin
+				if(i==0) begin
 					key_o <= intermediate;
 					done <= 1'b1;
 					valid <= 1'b1;

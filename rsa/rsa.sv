@@ -226,7 +226,7 @@ module rsa(
 				
 				3'b001: begin //buffer keyboard input 
 					/* keyboard input */
-					if(ps2_valid_i&&!ps2_done&&!ps2_valid_i) begin //don't buffer the enter key
+					if(ps2_valid_i&&!ps2_done&&!ps2_reset) begin //don't buffer the enter key
 						kbd[(8*count)+:8] <= ps2_data_i; 
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer

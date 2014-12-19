@@ -3,7 +3,7 @@ class transaction;
 	rand logic [4095:0] exp, mod;
 	rand logic [4095:0] key_i; /* really padded with zeros */
 	logic [4095:0] key_o;
-	logic [8195:0] intermediate;
+	logic [8191:0] intermediate;
 
 	function void generate_data();
 		int i;

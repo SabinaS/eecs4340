@@ -8,7 +8,7 @@ module md5_fcalc (
     output reg [31:0] f
 );
 
-always @(*) begin
+always @(posedge clk) begin
     case (sel)
         // 0 <= i <= 15
         2'b00: f <= (b & c) | (~b & d);

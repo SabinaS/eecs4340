@@ -9,13 +9,13 @@ input clk;
 input button;
 
 /* Outputs */
-output rsult;
+output logic result;
 
 /* Variables */
-logic [4:0] counter_size = 5'h13;		/* values passed in from ps2_top */
+wire [4:0] counter_size = 5'h13;		/* values passed in from ps2_top */
 logic [1:0] flipflops;
 logic counter_set;
-logic [counter_size:0] counter_out;
+logic [19:0] counter_out;
 
 /* Behavior */
 always_ff @(posedge clk) begin
@@ -28,11 +28,10 @@ always_ff @(posedge clk) begin
 			counter_out <= '0;
 		end else if(counter_out[counter_size] == '0) begin
 			counter_out <= counter_out + 1;
-		end else
+		end else begin 
 			result <= flipflops[1];
 		end
 	end
 end
-
 
 endmodule

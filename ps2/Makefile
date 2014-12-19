@@ -1,5 +1,4 @@
 PS2_TOP = ps2_top.sv
-PS2_BENCH = ps2_tb.sv
 PS2_OUTPUT = ps2testbench.exe
 
 MODULES = ps2_converter.sv \
@@ -17,7 +16,7 @@ help:
 	echo " help     - show this information";\
 
 ps2bench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(PS2_TOP) $(PS2_BENCH) $(MODULES) -o $(PS2_OUTPUT) 
+	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(PS2_TOP) $(MODULES) -o $(PS2_OUTPUT) 
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd

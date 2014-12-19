@@ -7,6 +7,8 @@ import "DPI" function void aes_encrypt(input bit [128:0] key,
 	input int in_len);
 import "DPI" function void generate_rsa_keys_lib(output bit[4095:0] modulus,
 	private_key);
+import "DPI" function void rsa_encrypt(input bit[127:0] current_aes_key,
+	output [4095:0] encrypted_aes_key);
 import "DPI" function void printout_128(input bit[127:0] ptr);
 import "DPI" function void printout_256(input bit[255:0] ptr);
 import "DPI" function void printout_384(input bit[383:0] ptr);
@@ -14,16 +16,24 @@ import "DPI" function void printout_384(input bit[383:0] ptr);
 class transaction;
 	// vars
 	rand bit reset;
+	rand bit[127:0] current_aes_key;
+	bit [4095:0] encrypted_aes_key;
+
+	function void generate_new_aes_key();
+		randomize();
+		rsa_encrypt(current_aes_key, encrypted_aes_key); /* uses statically stored key */
+		printout_128(current_aes_key);
+	endfunction
 
 	// Checking the reset functionality
 	function bit check_reset(logic out_valid_o, rsa_ready_o, aes_ready_o,
 			led_pass_o, led_fail_o);
 
 		return ((out_valid_o == '0) &&
-				(rsa_ready_o == '1) &&
-				(aes_ready_o == '1) &&
-				(led_pass_o == '1) && /* both LEDS on during reset */
-				(led_fail_o == '1));
+				(rsa_ready_o == 'b01) &&
+				(aes_ready_o == 'b01) &&
+				(led_pass_o == 'b01) && /* both LEDS on during reset */
+				(led_fail_o == 'b01));
 	endfunction
 
 	function bit check_stall(logic aes_ready_o, rsa_ready_o);
@@ -66,10 +76,11 @@ class testing_env;
 	bit [4095:0] private_key;
 
 	int data_selector = 0;
+	int encrypted_aes_data_selector = 0;
 	int incoming_data_selector = 0;
-	int aes_data_selector = 0;
 	int keyboard_data_selector = 0;
 	bit keyboard_done = '0;
+	bit key_send_done = '0;
 
 	function void read_config(string filename);
 		int file, chars_returned, seed, value;
@@ -156,6 +167,7 @@ class testing_env;
 		generate_key_header();
 		generate_rsa_key();
 		full_data = {rsa_info, key_header};
+		key_send_done = '0;
 		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
 	endfunction
 
@@ -181,14 +193,14 @@ program rsa_tb (rsa_ifc.bench ds);
 
 	int failures = 0;
 	bit reset;
-	bit check_done = 1'b0;
-	bit check_fail = 1'b0;
+	bit force_reset = 1'b0;
 
 	initial begin
 		t = new();
 		v = new();
 		v.read_config("config.txt");
 		v.handle_reset();
+		t.generate_new_aes_key();
 
 		// Drive inputs for next cycles
 		ds.cb.rst <= t.reset;
@@ -204,8 +216,9 @@ program rsa_tb (rsa_ifc.bench ds);
 
 		// Iterate iter number of cycles
 		repeat (v.iter) begin
-			if(v.get_reset() || check_done) begin
-				check_done <= 1'b0;
+			v.randomize();
+			if(v.get_reset() || force_reset) begin
+				//force_reset <= 1'b0;
 				ds.cb.rst <= 1'b1;
 				$display("%t : %s \n", $realtime, "Driving Reset");
 			end else begin
@@ -219,38 +232,31 @@ program rsa_tb (rsa_ifc.bench ds);
 				end else begin
 					ds.cb.stall <= 1'b0;
 					/* send data if necessary */
-					if (ds.cb.rsa_ready_o) begin
+					if (ds.cb.rsa_ready_o && !v.key_send_done) begin
+						$display("sent rsa data %d", v.data_selector);
 						ds.cb.rsa_data_i <=
-							v.full_data[32*v.data_selector +: 32];
+							v.full_data[128*v.data_selector +: 128];
 						ds.cb.rsa_valid_i <= 1'b1;
-						v.data_selector = (v.data_selector + 1) % 268; /* 8576 / 32 */
+						v.data_selector = v.data_selector + 1;
+						if (v.data_selector == 65) begin
+							v.key_send_done = 0'b1;
+						end
 					end else begin
 						ds.cb.rsa_valid_i <= 1'b0;
 					end
 
-					/* handle aes */
-					if (ds.cb.aes_ready_o) begin
-						/* TODO how is data being spit out to AES?
-						   How does AES know what to decrypt? */
-						ds.cb.aes_data_i <=
-							v.key_header_to_encrypt[32*v.aes_data_selector +: 32];
-						ds.cb.aes_valid_i <= 1'b1;
-						v.aes_data_selector = (v.aes_data_selector + 1) % 8; /* 256 / 32 */
-					end else begin
-						ds.cb.aes_valid_i <= 1'b0;
-					end
-
 					/* handle keyboard */
 					/* TODO add reset functionality */
-					if (!v.keyboard_done) begin
-						if (v.use_passphrase.substr(
+					if (!v.keyboard_done && v.key_send_done) begin
+						if (!v.use_passphrase.substr(
 									v.keyboard_data_selector,
-									v.keyboard_data_selector + 1) ==
-								"\n") begin
+									v.keyboard_data_selector).compare("\n")) begin
+						 $display("kb done asserted");
 							ds.cb.ps2_done <= 1'b1;
 							ds.cb.ps2_valid_i <= 1'b0;
 							v.keyboard_done = 1;
 						end else begin
+						 $display("sent kb data %d", v.keyboard_data_selector);
 							ds.cb.ps2_data_i <=
 								v.use_passphrase.substr(
 									v.keyboard_data_selector + 1,
@@ -260,12 +266,25 @@ program rsa_tb (rsa_ifc.bench ds);
 								v.keyboard_data_selector + 1;
 						end
 					end /* end keyboard */
+
+					/* handle aes */
+					if (ds.cb.aes_ready_o) begin
+						/* TODO how is data being spit out to AES?
+						   How does AES know what to decrypt? */
+						 $display("sent aes data %d", v.encrypted_aes_data_selector);
+						ds.cb.aes_data_i <=
+							t.encrypted_aes_key[128*v.encrypted_aes_data_selector +: 128];
+						ds.cb.aes_valid_i <= 1'b1;
+						v.encrypted_aes_data_selector = (v.encrypted_aes_data_selector + 1) % 32; /*4096 / 128*/
+					end else begin
+						ds.cb.aes_valid_i <= 1'b0;
+					end
 				end
 			end /* end reset check */
 
 			@(ds.cb);
 
-			if(v.get_reset()) begin
+			if(v.get_reset() || force_reset) begin
 				$display("%t : %s \n", $realtime,
 					t.check_reset(ds.cb.out_valid_o,
 						ds.cb.rsa_ready_o, ds.cb.aes_ready_o,
@@ -276,7 +295,7 @@ program rsa_tb (rsa_ifc.bench ds);
 				v.incoming_data_selector = 0;
 				v.keyboard_data_selector = 0;
 				v.keyboard_done = '0;
-				check_done = 1'b0;
+				force_reset = 1'b0;
 			end else begin
 				if (v.get_stall()) begin
 					$display("%t : %s \n", $realtime,
@@ -285,27 +304,12 @@ program rsa_tb (rsa_ifc.bench ds);
 				end else begin
 					/* checks data out */
 					if (ds.cb.out_valid_o) begin
-						if (v.private_key[32*v.incoming_data_selector +: 32] ==
-									ds.cb.out_data_o) begin
-								/* match so far */
-						end else begin
-							$display("%t : Fail-data\n", $realtime);
-							check_fail = 1'b1;
-							failures = failures + 1;
-						end
-						v.incoming_data_selector = v.incoming_data_selector + 1;
+						$display("%t : %s \n", $realtime,
+							t.current_aes_key == ds.cb.out_data_o ?
+							"Pass-data" : "Fail-data");
+						t.generate_new_aes_key();
 					end
 				end
-			end
-
-			/* finished with this iteration */
-			if (v.incoming_data_selector == 128) begin /* 4096 / 32 */
-				if (check_fail) begin
-					$display("%t : Fail-data_test\n", $realtime);
-					check_fail = 1'b0;
-				end
-				v.handle_reset();
-				check_done = 1'b1;
 			end
 		end
 	end

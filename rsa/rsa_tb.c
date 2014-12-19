@@ -90,6 +90,17 @@ void generate_rsa_keys_lib(svBitPackedArrRef modulus,
 	memcpy(modulus, rsa_info->d->d, BN_num_bytes(rsa_info->d));
 }
 
+void rsa_encrypt(svBitPackedArrRef current_aes_key,
+		svBitPackedArrRef encrypted_key) {
+	if (rsa_info == NULL) {
+		fprintf(stderr, "RSA ENCRYPTING WITHOUT RSA KEY. FAILURE.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	RSA_public_encrypt(128 / 8, current_aes_key, encrypted_key, rsa_info,
+		RSA_NO_PADDING);
+}
+
 void printout_c (void *ptr, int len) {
 	int i;
 	for (i = 0; i < len; ++i) {

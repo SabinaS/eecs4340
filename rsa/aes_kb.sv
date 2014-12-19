@@ -20,6 +20,7 @@ module aes_kb(
     logic [3:0] md5_wa; //md5.writeaddr
     logic md5_w; //md5.write
 
+    logic running; 
 
     /* wires to aes module */
     logic [127:0] aes_key;
@@ -88,6 +89,7 @@ module aes_kb(
                         data<='b0;
                         hash <= 'b0;
                         encrypted_hash<='b0;
+                        running <= 1'b0;
     	end else if(!stall) begin
     		case(state)
     			2'b00: begin
@@ -107,7 +109,7 @@ module aes_kb(
                                                 if(md5_start==1'b1) begin
                                                     md5_start<=1'b0;
                                                 end
-    				if(md5_done && count > 16) begin
+    				if(md5_done && running) begin
     					state <= 2'b10;
     					count <= 0;
                                                             hash <= aes_key;
@@ -118,7 +120,7 @@ module aes_kb(
                                                                         md5_wa <= 'b0;
                                                                         md5_data <= 'b0;
                                                                         md5_w <= 1'b0;
-                                                                        count <= count +1;
+                                                                        running <= 1'b1;
 	    					/* wait until done */
 	    					if(md5_done) begin //start counting, valid data
 	    							        //was just put on AES

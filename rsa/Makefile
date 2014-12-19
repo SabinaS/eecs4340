@@ -40,6 +40,13 @@ modexpbench_directed:
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice \
 		modexp.sv modexp_directed_tb.sv -o modexp_test_directed.exe
 
+modexpbench_coverage:
+	vcs -full64 -cm line+tgl+cond+fsm+branch+assert -debug_pp -sverilog -notice +lint=all,noVCDE +define+SV +define+VPD modexp.sv modexp_ifc.sv modexp_tb.sv modexp_tb_adapter.sv modexp_top.sv -o modexp_test.exe
+	./modexp_test.exe
+	/sim/synopsys/vcs/bin/urg -dir modexp_test.exe.vdb/
+	firefox urgReport/dashboard.html
+
+
 rsabench: aes_lib
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(RSA_TOP) $(RSA_IFC) $(RSA_BENCH) \
 		$(MODULES) $(NATIVE_FILES) $(NATIVE_LIBS) -o $(RSA_OUTPUT)

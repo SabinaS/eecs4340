@@ -123,7 +123,7 @@ module aes_kb(
                                                             data <= encrypted_hash;
                                                             running <= 1'b0;
     				end else begin
-    					if(count==16) begin
+    					if(count==16 && !md5_start) begin
                                                                         md5_start <= 1'b1;
                                                                         md5_wa <= 'b0;
                                                                         md5_data <= 'b0;

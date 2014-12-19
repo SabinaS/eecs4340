@@ -55,7 +55,7 @@ module modexp(
 		end else if(!stall) begin
 			if(run) begin
 				if(i==0) begin
-					key_o <= (intermediate * (exp[i] ? key_i: '1)) % mod;
+					key_o <= (intermediate * (exp[i] ? key_i: 'b01)) % mod;
 					done <= 1'b1;
 					valid <= 1'b1;
 				end else begin

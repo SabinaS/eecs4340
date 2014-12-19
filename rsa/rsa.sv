@@ -209,6 +209,7 @@ module rsa(
 	/* BUFFERS */
 	always_ff @(posedge clk) begin 
 		if(rst) begin
+			input_buff <= 'b0;
 			kbd <= 'b0;
 			aes <= 'b0;
 			aes_in <= 'b0;

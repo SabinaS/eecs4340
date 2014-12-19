@@ -68,6 +68,10 @@ module rsa_directed_test();
     #1 clk = 0;
     end
 
+    for(i=0;i<100;i=i+1) begin 
+    #1 clk = 1;
+    #1 clk = 0;
+    end
 
     #1 clk = 1;
     #1 clk = 0;

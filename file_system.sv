@@ -2,6 +2,7 @@
 module file_system (
 	input clk,
 	input rst,
+	input stall,
 
 	input valid_i,
 	input [31:0] data_i,

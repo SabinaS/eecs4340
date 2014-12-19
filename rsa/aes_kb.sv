@@ -98,6 +98,7 @@ module aes_kb(
     					count <= 0;
                                                             encrypted_hash <= in_buf;
                                                             //md5_start <= 1'b1; //WRONG
+                                                            md5_w <= 1'b1;
     				end else begin
     					/* do nothing */
     					done <= 1'b0;
@@ -114,6 +115,7 @@ module aes_kb(
     					count <= 0;
                                                             hash <= aes_key;
                                                             data <= encrypted_hash;
+                                                            running <= 1'b0;
     				end else begin
     					if(count==16) begin
                                                                         md5_start <= 1'b1;

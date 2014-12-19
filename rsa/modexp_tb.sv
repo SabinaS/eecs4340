@@ -8,8 +8,15 @@ class transaction;
 	function void generate_data();
 		int i;
 
+		/* DEBUGGING ONLY */
+    exp[4095:16] = '0;
+    mod[4095:16] = '0;
+    key_i[4095:16] = '0;
+
+    key_i = key_i % mod;
+
 		intermediate = '1;
-		for(i = 4095; i >= 0; --i) begin
+		for(i = 4095 /* length exp */; i >= 0; --i) begin
 			if (exp[i] == 1) begin
 				intermediate = (key_i * intermediate) % mod;
 			end
@@ -18,7 +25,7 @@ class transaction;
 			end
 		end
 
-		key_o = intermediate[4095:0];
+		key_o = intermediate[4095:0]; /* definitely resolved to bottom half */
 	endfunction
 
 	function bit verify_data(logic[4095:0] recieved);
@@ -147,7 +154,8 @@ program modexp_tb (modexp_ifc.bench ds);
 					if (t.verify_data(ds.cb.data_o)) begin
 						$display("%t : %s \n", $realtime, "Pass-data");
 					end else begin
-						$display("\nFail-data: %d %d\n\n", ds.cb.data_o, t.key_o);
+						$display("\nFail-data: %d %d::%d**%d mod %d\n\n",
+							ds.cb.data_o[15:0], t.key_o[15:0], t.key_i[15:0], t.exp[15:0], t.mod[15:0]);
 					end
 					force_reset <= '1;
 				end

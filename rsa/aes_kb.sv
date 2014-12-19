@@ -99,7 +99,7 @@ module aes_kb(
     			2'b00: begin
     				if(start) begin
     					state <= 2'b01;
-    					count <= 1;
+    					count <= 0;
                                                             encrypted_hash <= in_buf;
     				end else begin
     					/* do nothing */

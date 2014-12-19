@@ -94,7 +94,8 @@ module aes_kb(
     				if(start) begin
     					state <= 2'b01;
     					count <= 0;
-                        encrypted_hash <= in_buf;
+                                                            encrypted_hash <= in_buf;
+                                                            md5_start <= 1'b1;
     				end else begin
     					/* do nothing */
     					done <= 1'b0;

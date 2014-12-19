@@ -116,7 +116,7 @@ module aes_kb(
                                                 if(md5_start==1'b1) begin
                                                     md5_start<=1'b0;
                                                 end
-    				if(md5_done && running) begin
+    				if(md5_done && running && !md5_start) begin
     					state <= 2'b10;
     					count <= 0;
                                                             hash <= aes_key;

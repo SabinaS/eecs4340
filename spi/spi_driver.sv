@@ -6,26 +6,25 @@ module spi_driver (
 );
 
 // The speed of clk.
-parameter CLK_MHZ = 50;
+parameter CLK_MHZ               = 50;
 // The width of the device communication with the FAT32 module
-parameter BUS_WIDTH = 128;
+parameter BUS_WIDTH             = 128;
 // The number of cycles to toggle SCLK for during initialization
-parameter SCLK_WAIT = 74;
+parameter SCLK_WAIT             = 74;
 
 // See spi_command.sv for definitions
-parameter COMMAND_WIDTH = 6 * 8;
-parameter INTERNAL_DAT_WIDTH = 8;
+parameter COMMAND_WIDTH         = 6 * 8;
 
 // The number of bits needed to represent SCLK_WAIT
-parameter SCLK_WAIT_WIDTH = $clog2(SCLK_WAIT + 1);
+parameter SCLK_WAIT_WIDTH       = $clog2(SCLK_WAIT + 1);
 // The number of cycles elapsed in CLK_MHZ to wait to toggle sclk during initialization
-parameter SPI_CYCLE_INIT = (CLK_MHZ * 1000000) / 400000;
+parameter SPI_CYCLE_INIT        = (CLK_MHZ * 1000000) / 400000;
 // The number of cycles to wait to toggle sclk in normal operation
-parameter SPI_CYCLE = (CLK_MHZ * 1000000) / (25 * 1000000);
+parameter SPI_CYCLE             = (CLK_MHZ * 1000000) / (25 * 1000000);
 // The number of bits needed to represent SPI_CYCLE_INIT
-parameter SPI_CYCLE_INIT_WIDTH = $clog2(SPI_CYCLE_INIT + 1);
+parameter SPI_CYCLE_INIT_WIDTH  = $clog2(SPI_CYCLE_INIT + 1);
 // The number of cycles to wait for a millisecond to elapse..
-parameter MILLISECOND_MHZ = (CLK_MHZ * 1000000) * (1 / 1000);
+parameter MILLISECOND_MHZ       = (CLK_MHZ * 1000000) * (1 / 1000);
 // The number of bytes needed to represent MILLISECOND_MHZ
 parameter MILLISECOND_MHZ_WIDTH = $clog2(MILLISECOND_MHZ + 1);
 
@@ -55,17 +54,60 @@ inout [BUS_WIDTH-1:0] dat;
 
 // Some renaming for easier coding
 logic sclk, mosi, ss;
-wire miso;
+wire miso, sclk_posedge;
 
-// Assignmens
-assign miso = from_slave_i;
-assign to_slave_o[0] = sclk;
-assign to_slave_o[1] = mosi;
-assign to_slave_o[2] = ss;
-assign sclk_posedge = (ss_divider == ss_toggle_value) && !sclk;
+// CRC. The modules get unfiltered access to the CRC modules, as they do buses, but this should also be fine as no two modules should be actively using a crc block.
+wire crc7_valid, crc7_dat, crc7_rst;
+wire crc16_valid, crc16_dat, crc16_rst;
+wire [6:0] crc7_i;
+wire [15:0] crc16_i;
 
-spi_read #(BUS_WIDTH) reader (.*);
-spi_write #(BUS_WIDTH) writer (.*);
+crc_7 crc7   (.valid_i(crc7_valid),
+              .dat_i(crc7_dat),
+              .crc_o(crc7_i),
+              .rst(crc7_rst),
+              .*);
+crc_16 crc16 (.valid_i(crc16_valid),
+              .dat_i(crc16_dat),
+              .crc_o(crc16_i),
+              .rst(crc16_rst),
+              .*);
+
+// The read and write submodules are given unfiltered access to the data bus to avoid sharing logic, seeing as the driver is the one that ultimately initiates the module.
+wire [BUS_WIDTH-1:0] read_bus, write_bus;
+wire read_done, write_done;
+logic do_read, do_write;
+
+wire read_crc7_valid, read_crc7_dat, read_crc7_rst;
+wire read_crc16_valid, read_crc16_dat, read_crc16_rst;
+
+wire write_crc7_valid, write_crc7_dat, write_crc7_rst;
+wire write_crc16_valid, write_crc16_dat, write_crc16_rst;
+
+wire read_mosi, write_mosi;
+
+spi_read #(BUS_WIDTH) reader  (.mosi(read_mosi),
+                               .bus_io(read_bus),
+                               .read_done_o(read_done),
+                               .read_i(do_read),
+                               .crc7_valid_o(read_crc7_valid),
+                               .crc7_dat_o(read_crc7_dat),
+                               .crc7_rst_o(read_crc7_rst),
+                               .crc16_valid_o(read_crc16_valid),
+                               .crc16_dat_o(read_crc16_dat),
+                               .crc16_rst_o(read_crc16_rst),
+                               .*);
+spi_write #(BUS_WIDTH) writer (.mosi(write_mosi),
+                               .bus_io(write_bus),
+                               .write_done_o(write_done),
+                               .write_i(do_write),
+                               .crc7_valid_o(write_crc7_valid),
+                               .crc7_dat_o(write_crc7_dat),
+                               .crc7_rst_o(write_crc7_rst),
+                               .crc16_valid_o(write_crc16_valid),
+                               .crc16_dat_o(write_crc16_dat),
+                               .crc16_rst_o(write_crc16_rst),
+                               .*);
 
 // A register used to count up to 74 SPI cycles.
 logic [SCLK_WAIT_WIDTH-1:0] spi_counter;
@@ -90,6 +132,14 @@ parameter INIT_CMD8_STATE = 6;
 // The state register. Used to condence the numerous 1 bit logic check registers. Take a look at the variables ending with _STATE to see what the different positions correspond to.
 logic [STATES-1:0] state;
 
+// Assignmens
+assign miso = from_slave_i;
+assign to_slave_o[0] = sclk;
+assign to_slave_o[1] = mosi;
+assign to_slave_o[2] = ss;
+// It's time to toggle the value of sclk, and sclk was previously low
+assign sclk_posedge = (ss_divider == ss_toggle_value) && !sclk;
+
 // The behavior
 always_ff @(posedge clk) begin
     // init is asserted on reset
@@ -113,19 +163,15 @@ always_ff @(posedge clk) begin
         mosi <= '0;
         ss <= '0;
         ms_waiter <= '0;
-        command <= '0;
-        command_valid <= '0;
-        command_shift_position <= '0;
+        do_read <= '0;
+        do_write <= '0;
     // Reset takes precedence. remainder of the behavior
     end else begin
         // Toggle sclk
         if (state[SCLK_ACTIVE_STATE]) begin
             // Time to toggle
-            if (ss_divider == ss_toggle_value) begin
-                ss_divider <= '0;
-                sclk <= !sclk;
-            end else
-                ss_divider <= ss_divider + 1'b1;
+            ss_divider <= ss_divider == ss_toggle_value ? '0 : ss_divider + 1'b1;
+            sclk <= ~sclk;
         end
 
         // Initialization

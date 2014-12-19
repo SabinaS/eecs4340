@@ -104,6 +104,7 @@ module aes_kb(
     			end
 
     			2'b01: begin /* feed md5 data to md5 unit, wait for done */
+                                                md5_start<=1'b0;
     				if(md5_done && count > 0) begin
     					state <= 2'b10;
     					count <= 0;

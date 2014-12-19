@@ -56,7 +56,7 @@ module rsa_directed_test();
     for(i=0;i<56;i=i+1) begin /* modify for corner cases */
     #1 clk = 1;
     #1 clk = 0;
-    ps2_data_i = (ps2_data_i + 1'b00000001) % 8'b11111111;
+    ps2_data_i = (ps2_data_i + 8'b00000001) % 8'b11111111;
     end
 
     ps2_data_i <= 'b0;
@@ -68,7 +68,7 @@ module rsa_directed_test();
     #1 clk = 0;
     end
 
-    for(i=0;i<100;i=i+1) begin 
+    for(i=0;i<1000;i=i+1) begin 
     #1 clk = 1;
     #1 clk = 0;
     end

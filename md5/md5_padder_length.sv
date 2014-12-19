@@ -1,7 +1,6 @@
 `timescale 1ns/1ns
 
-/* module for performing modular exponentiation */
-module modexp(
+module md5_padder_length(
   in, out
 );
     input logic [447:0] in;

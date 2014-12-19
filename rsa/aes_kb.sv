@@ -32,15 +32,16 @@ module aes_kb(
 
     //kb is 448 bits, need to append 1000...000 to it
     logic [32:0] kbd [0:15];
-
+    logic [63:0] kb_length;
+    logic [63:0] mpl;
 
     /* endianness ???? TODO */
     // TODO
     // TODO
     // TODO
     //SRSLY
-    assign kbd[15] = 32'b1000_0000_0000_0000_0000_0000_0000_0000; //will need to modify padding
-    assign kbd[14] = 32'b0000_0000_0000_0000_0000_0000_0000_0000; //will need to modify padding
+    assign kbd[15] = kb_length[63:32]; //will need to modify padding
+    assign kbd[14] = kb_length[31:0]; //will need to modify padding
     assign kbd[13] = kb[447:416];
     assign kbd[12] = kb[415:384];
     assign kbd[11] = kb[383:352];
@@ -60,7 +61,7 @@ module aes_kb(
     md5 md5_inst(.writeaddr(md5_wa), .writedata(md5_data),.write(md5_w),
     	.start(md5_start),.done(md5_done),.digest0(aes_key),.reset(rst),.*);
     aes aes_inst(.aes_in(data), .key(aes_key), .data_out(aes_key_d), .*);
-
+    md5_padder_length md5_pl_inst(.in(kbd), .out(mpl));
 
     /* when start goes high, run the AES decryption
      * when done, raise the output done signal
@@ -94,6 +95,7 @@ module aes_kb(
                         hash <= 'b0;
                         encrypted_hash<='b0;
                         running <= 1'b0;
+                        kb_length <= 'b0;
     	end else if(!stall) begin
     		case(state)
     			2'b00: begin
@@ -101,6 +103,7 @@ module aes_kb(
     					state <= 2'b01;
     					count <= 0;
                                                             encrypted_hash <= in_buf;
+                                                            kb_length <= mpl;
     				end else begin
     					/* do nothing */
     					done <= 1'b0;

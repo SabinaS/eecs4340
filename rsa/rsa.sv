@@ -230,7 +230,73 @@ module rsa(
 				
 				3'b001: begin //buffer keyboard input 
 					/* keyboard input */
-					if(ps2_valid_i&&!ps2_done&&!ps2_reset) begin //don't buffer the enter key
+					if(ps2_done && ps2_valid_i) begin
+						//TODO Padding 
+						//pad zeros up to 448
+						if(count<56) begin
+							case(count)
+								0: kbd <= 'b0;
+								1: kbd[447:8] <= 'b0;
+								2: kbd[447:16] <= 'b0;
+								3: kbd[447:24] <= 'b0;
+								4: kbd[447:32] <= 'b0;
+								5: kbd[447:40] <= 'b0;
+								6: kbd[447:48] <= 'b0;
+								7: kbd[447:56] <= 'b0;
+								8: kbd[447:64] <= 'b0;
+								9: kbd[447:72] <= 'b0;
+								10: kbd[447:80] <= 'b0;
+								11: kbd[447:88] <= 'b0;
+								12: kbd[447:96] <= 'b0;
+								13: kbd[447:104] <= 'b0;
+								14: kbd[447:112] <= 'b0;
+								15: kbd[447:120] <= 'b0;
+								16: kbd[447:128] <= 'b0;
+								17: kbd[447:136] <= 'b0;
+								18: kbd[447:144] <= 'b0;
+								19: kbd[447:152] <= 'b0;
+								20: kbd[447:160] <= 'b0;
+								21: kbd[447:168] <= 'b0;
+								22: kbd[447:176] <= 'b0;
+								23: kbd[447:184] <= 'b0;
+								24: kbd[447:192] <= 'b0;
+								25: kbd[447:200] <= 'b0;
+								26: kbd[447:208] <= 'b0;
+								27: kbd[447:216] <= 'b0;
+								28: kbd[447:224] <= 'b0;
+								29: kbd[447:232] <= 'b0;
+								30: kbd[447:240] <= 'b0;
+								31: kbd[447:248] <= 'b0;
+								32: kbd[447:256] <= 'b0;
+								33: kbd[447:264] <= 'b0;
+								34: kbd[447:272] <= 'b0;
+								35: kbd[447:280] <= 'b0;
+								36: kbd[447:288] <= 'b0;
+								37: kbd[447:296] <= 'b0;
+								38: kbd[447:304] <= 'b0;
+								39: kbd[447:312] <= 'b0;
+								40: kbd[447:320] <= 'b0;
+								41: kbd[447:328] <= 'b0;
+								42: kbd[447:336] <= 'b0;
+								43: kbd[447:344] <= 'b0;
+								44: kbd[447:352] <= 'b0;
+								45: kbd[447:360] <= 'b0;
+								46: kbd[447:368] <= 'b0;
+								47: kbd[447:376] <= 'b0;
+								48: kbd[447:384] <= 'b0;
+								49: kbd[447:392] <= 'b0;
+								50: kbd[447:400] <= 'b0;
+								51: kbd[447:408] <= 'b0;
+								52: kbd[447:416] <= 'b0;
+								53: kbd[447:424] <= 'b0;
+								54: kbd[447:432] <= 'b0;
+								55: kbd[447:440] <= 'b0;
+
+							endcase
+						end
+						//top 64 bits are equal to length in bits mod (2^64)   but we can ignore mod
+
+					end else if(ps2_valid_i&&!ps2_done&&!ps2_reset) begin //don't buffer the enter key
 						kbd[(8*count)+:8] <= ps2_data_i; 
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer

@@ -84,7 +84,10 @@ wire read_crc16_valid, read_crc16_dat, read_crc16_rst;
 wire write_crc7_valid, write_crc7_dat, write_crc7_rst;
 wire write_crc16_valid, write_crc16_dat, write_crc16_rst;
 
-spi_read #(BUS_WIDTH) reader  (.bus_io(read_bus),
+wire read_mosi, write_mosi;
+
+spi_read #(BUS_WIDTH) reader  (.mosi(read_mosi),
+                               .bus_io(read_bus),
                                .read_done_o(read_done),
                                .read_i(do_read),
                                .crc7_valid_o(read_crc7_valid),
@@ -94,7 +97,8 @@ spi_read #(BUS_WIDTH) reader  (.bus_io(read_bus),
                                .crc16_dat_o(read_crc16_dat),
                                .crc16_rst_o(read_crc16_rst),
                                .*);
-spi_write #(BUS_WIDTH) writer (.bus_io(write_bus),
+spi_write #(BUS_WIDTH) writer (.mosi(write_mosi),
+                               .bus_io(write_bus),
                                .write_done_o(write_done),
                                .write_i(do_write),
                                .crc7_valid_o(write_crc7_valid),

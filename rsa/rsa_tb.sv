@@ -1,9 +1,9 @@
 import "DPI" function void md5hash(input string src,
 	output bit[127:0] res,
 	input int in_len);
-import "DPI" function void aes_encrypt(input bit [255:0] key, 
-	input bit [255:0] to_encrypt,
-	output bit [255:0] encrypted_message,
+import "DPI" function void aes_encrypt(input bit [128:0] key, 
+	input bit [128:0] to_encrypt,
+	output bit [128:0] encrypted_message,
 	input int in_len);
 import "DPI" function void generate_rsa_keys_lib(output bit[4095:0] modulus,
 	private_key);
@@ -55,13 +55,12 @@ class testing_env;
 
 	/* make sure there's space for the md5 hash */
 	bit [127:0] passphrase_md5 = '0;
-	rand bit [127:0] random_md5_pad;
 
-	bit [383:0] key_header;
-	bit [255:0] key_aes_rsa;
-	bit [255:0] key_header_to_encrypt;
+	bit [128:0] key_header;
+	bit [128:0] key_aes_rsa;
+	bit [128:0] key_header_to_encrypt;
 	bit [8191:0] rsa_info;
-	bit [8575:0] full_data;
+	bit [8319:0] full_data;
 
 	bit [4095:0] modulus = '0; /* modulus */
 	bit [4095:0] private_key;
@@ -128,26 +127,22 @@ class testing_env;
 	endfunction
 
 	function void generate_key_header();
-		bit [127:0] zero_padding = '0;
-		bit [255:0] encrypted_message = '0;
+		bit [127:0] encrypted_message = '0;
 
 		md5hash(correct_passphrase, passphrase_md5, passphrase_length);
-		key_aes_rsa = {passphrase_md5, random_md5_pad};
-		key_header_to_encrypt = {passphrase_md5, zero_padding};
-		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 32);
-		key_header = {encrypted_message, random_md5_pad};
+		key_aes_rsa = {passphrase_md5};
+		key_header_to_encrypt = {passphrase_md5};
+
+		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 16);
+		key_header = {encrypted_message};
 /*		printout_128(passphrase_md5);
-		printout_128(random_md5_pad);
-		printout_256(key_aes_rsa);
-		printout_256(key_header_to_encrypt);
-		printout_256(encrypted_message);
-		printout_384(key_header);
+		printout_128(key_aes_rsa);
+		printout_128(key_header_to_encrypt);
+		printout_128(encrypted_message);
 		$display("passphrase_md5: %x", passphrase_md5);
-		$display("random_md5:     %x", random_md5_pad);
 		$display("key_aes_rsa:    %x", key_aes_rsa);
 		$display("to_encrypt:     %x", key_header_to_encrypt);
-		$display("enc message:    %x", encrypted_message);
-		*/
+		$display("enc message:    %x", encrypted_message);*/
 	endfunction
 
 	function void generate_rsa_key();

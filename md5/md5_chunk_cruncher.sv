@@ -79,7 +79,7 @@ assign done = (stage == FINISHED);
 
 reg [1:0] step;
 
-always @(posedge clk) begin
+always @(*) begin
     if (stage == CRUNCH) begin
         case (step)
             2'b00: begin

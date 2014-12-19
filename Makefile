@@ -24,7 +24,7 @@ mfebench:
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(MFE_TOP) $(MFE_INTERFACE) $(MFE_BENCH) $(MFE_DUT) $(MODULES) -o $(MFE_OUTPUT) 
 
 md5bench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice md5/*.sv memory/*.sv memory/altsyncram.v -o md5testbench.exe 
+	make md5bench -C md5/
 
 rsabench: 
 	make -C rsa/
@@ -39,3 +39,4 @@ wave:
 clean:
 	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *exe *.key *.exe.vdb
 	make -C rsa/ clean
+	make -C md5/ clean

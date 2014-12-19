@@ -4,8 +4,8 @@ interface modexp_ifc (input bit clk);
 	logic             rst, stall;
 
 	logic [4095:0]    exp, mod;
-	logic [127:0]     data_i;
-	logic [127:0]     data_o;
+	logic [4095:0]     data_i;
+	logic [4095:0]     data_o;
 
 	logic             start, done, valid;
 

@@ -72,9 +72,7 @@ always_ff @(posedge clk) begin
 	end
 
 	/* verify that parity, start, and stop bits are all correct */
-	if( !(~ps2_word[0] && ps2_word[10] && (ps2_word[9] ^ ps2_word[8] ^
-        ps2_word[7] ^ ps2_word[6] ^ ps2_word[5] ^ ps2_word[4] ^ ps2_word[3] ^ 
-        ps2_word[2] ^ ps2_word[1]) ) begin
+	if( !(~ps2_word[0] && ps2_word[10] && (ps2_word[9] ^ ps2_word[8] ^ ps2_word[7] ^ ps2_word[6] ^ ps2_word[5] ^ ps2_word[4] ^ ps2_word[3] ^ ps2_word[2] ^ ps2_word[1])) ) begin
         error = 1'h1; 
     end
 

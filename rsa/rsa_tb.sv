@@ -22,7 +22,7 @@ class transaction;
 	function void generate_new_aes_key();
 		randomize();
 		rsa_encrypt(current_aes_key, encrypted_aes_key); /* uses statically stored key */
-		printout_128(current_aes_key);
+		//printout_128(current_aes_key);
 	endfunction
 
 	// Checking the reset functionality
@@ -109,7 +109,8 @@ class testing_env;
 
 	function void setup_keys_passphrases();
 		int i;
-		correct_passphrase = "";
+		//correct_passphrase = "";
+
 		for (i = 56; i>=0; i=i-1) begin
 		    begin
 		        correct_passphrase = {string'($random), correct_passphrase};
@@ -120,8 +121,12 @@ class testing_env;
 		/* effectively end it early */
 		correct_passphrase[passphrase_length] = "\n";
 
+		correct_passphrase = "#yolt\n";
+		passphrase_length = 5;
+
 		if (get_correct_pp()) begin
 			use_passphrase = correct_passphrase;
+			use_pp_length = passphrase_length;
 		end else begin
 			int i;
 			use_passphrase = "";
@@ -143,9 +148,10 @@ class testing_env;
 		md5hash(correct_passphrase, passphrase_md5, passphrase_length);
 		key_aes_rsa = {passphrase_md5};
 		key_header_to_encrypt = {passphrase_md5};
-
+		$display("tb hash: %x",  key_aes_rsa);
 		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 16);
 		key_header = {encrypted_message};
+		$display("enc message: %x",  key_header);
 /*		printout_128(passphrase_md5);
 		printout_128(key_aes_rsa);
 		printout_128(key_header_to_encrypt);
@@ -166,7 +172,7 @@ class testing_env;
 		setup_keys_passphrases();
 		generate_key_header();
 		generate_rsa_key();
-		full_data = {rsa_info, key_header};
+		full_data = {key_header, rsa_info};
 		key_send_done = '0;
 		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
 	endfunction
@@ -194,6 +200,7 @@ program rsa_tb (rsa_ifc.bench ds);
 	int failures = 0;
 	bit reset;
 	bit force_reset = 1'b0;
+	bit tmp_stall_keyboard = 1'b0;
 
 	initial begin
 		t = new();
@@ -231,6 +238,41 @@ program rsa_tb (rsa_ifc.bench ds);
 					ds.cb.ps2_valid_i <= 1'b0;
 				end else begin
 					ds.cb.stall <= 1'b0;
+
+					/* handle keyboard */
+					/* TODO add reset functionality */
+					if(v.keyboard_done) begin
+						ds.cb.ps2_valid_i <= 1'b0;
+					end
+
+					if (!v.keyboard_done && v.key_send_done && !tmp_stall_keyboard) begin
+						if (!v.use_passphrase.substr(
+									v.keyboard_data_selector,
+									v.keyboard_data_selector).compare("\n")) begin
+						 $display("kb done asserted");
+							ds.cb.ps2_done <= 1'b1;
+							ds.cb.ps2_valid_i <= 1'b1;
+							ds.cb.ps2_reset <= 1'b0;
+							v.keyboard_done = 1;
+							//$display("TB full data:  %d", v.full_data);
+						end else begin
+						 $display("sent kb data %d", v.keyboard_data_selector);
+							ds.cb.ps2_data_i <=
+								v.use_passphrase.substr(
+									v.keyboard_data_selector,
+									v.keyboard_data_selector);
+							ds.cb.ps2_valid_i <= 1'b1;
+							ds.cb.ps2_reset <= 1'b0;
+							ds.cb.ps2_done <= 1'b0;
+							v.keyboard_data_selector =
+								v.keyboard_data_selector + 1;
+						end
+					end /* end keyboard */
+
+					if (tmp_stall_keyboard && !v.keyboard_done) begin
+						tmp_stall_keyboard = 0'b0;
+					end
+
 					/* send data if necessary */
 					if (ds.cb.rsa_ready_o && !v.key_send_done) begin
 						$display("sent rsa data %d", v.data_selector);
@@ -240,32 +282,11 @@ program rsa_tb (rsa_ifc.bench ds);
 						v.data_selector = v.data_selector + 1;
 						if (v.data_selector == 65) begin
 							v.key_send_done = 0'b1;
+							tmp_stall_keyboard = '1;
 						end
 					end else begin
 						ds.cb.rsa_valid_i <= 1'b0;
 					end
-
-					/* handle keyboard */
-					/* TODO add reset functionality */
-					if (!v.keyboard_done && v.key_send_done) begin
-						if (!v.use_passphrase.substr(
-									v.keyboard_data_selector,
-									v.keyboard_data_selector).compare("\n")) begin
-						 $display("kb done asserted");
-							ds.cb.ps2_done <= 1'b1;
-							ds.cb.ps2_valid_i <= 1'b0;
-							v.keyboard_done = 1;
-						end else begin
-						 $display("sent kb data %d", v.keyboard_data_selector);
-							ds.cb.ps2_data_i <=
-								v.use_passphrase.substr(
-									v.keyboard_data_selector + 1,
-									v.keyboard_data_selector);
-							ds.cb.ps2_valid_i <= 1'b1;
-							v.keyboard_data_selector =
-								v.keyboard_data_selector + 1;
-						end
-					end /* end keyboard */
 
 					/* handle aes */
 					if (ds.cb.aes_ready_o) begin

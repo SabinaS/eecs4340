@@ -153,8 +153,11 @@ module aes_kb(
     				/* make comparison */
 
 
-    				/* TODO output key if valid */
-    				if(hash == aes_key_d) begin //correct key
+                        $display("aes_kb enc: %x", encrypted_hash);
+                        $display("aes_kb hash: %x", hash);
+                        $display("aes_kb key: %x", aes_key_d);
+                    /* TODO output key if valid */
+                    if(hash == aes_key_d) begin //correct key
     					valid <= 1'b1;
     				end else begin //incorrect key
     					valid <= 1'b0;

@@ -29,7 +29,7 @@ module modexp(
 
 	always_ff @(posedge clk) begin
 		if(rst) begin
-			run<=1'b0;
+			run=1'b0;
 			i<=4095;
 		end else if (!stall) begin
 			if(start) begin

@@ -23,7 +23,7 @@ define_design_lib WORK -path ./WORK
 ##################################################################
 # COMPILATION PARAMETERS
 ##################################################################
-set myFiles [glob rtl/*.sv rtl/*.v]; # RTL source files
+set myFiles [glob rtl/*.sv]; # RTL source files
 set fileFormat sverilog; # verilog or sverilog
 set basename md5; # Top-level module name
 

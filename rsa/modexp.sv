@@ -75,9 +75,9 @@ module modexp(
 						end
 					end else begin
 						if(exp[i] == 1'b1) begin
-							intermediate <= intermediate*intermediate*key_i;
+							intermediate <= (intermediate*intermediate*key_i)%exp;
 						end else begin
-							intermediate <= intermediate*intermediate;
+							intermediate <= (intermediate*intermediate)%exp;
 						end
 					end
 				end

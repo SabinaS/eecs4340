@@ -95,10 +95,12 @@ module aes_kb(
     			2'b00: begin
     				if(start) begin
     					state <= 2'b01;
-    					count <= 0;
+    					count <= 1;
                                                             encrypted_hash <= in_buf;
                                                             //md5_start <= 1'b1; //WRONG
                                                             md5_w <= 1'b1;
+                                                            md5_wa <= 'b0;
+                                                            md5_data <= kbd[0];
     				end else begin
     					/* do nothing */
     					done <= 1'b0;
@@ -123,13 +125,6 @@ module aes_kb(
                                                                         md5_data <= 'b0;
                                                                         md5_w <= 1'b0;
                                                                         running <= 1'b1;
-	    					/* wait until done */
-	    					if(md5_done) begin //start counting, valid data
-	    							        //was just put on AES
-	    						state <= 2'b10;
-	    						count <= 0; //TODO should this be 1? 
-
-	    					end
     					end else begin
     						/* push data into md5 */
 						md5_wa <= count[3:0];

@@ -1,4 +1,4 @@
-'timescale 1ns/1ns
+`timescale 1ns/1ns
 
 module debounce(
 	clk, button, result

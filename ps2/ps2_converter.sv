@@ -1,4 +1,4 @@
-'timescale 1ns/1ns
+`timescale 1ns/1ns
 
 module ps2_converter(
 	clk, ps2_clk, rst, 

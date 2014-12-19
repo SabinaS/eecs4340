@@ -1,4 +1,4 @@
-'timescale 1ns/1ns
+`timescale 1ns/1ns
 
 module ps2_top (
 	clk, rst, ps2_clk, ps2_data,

@@ -85,16 +85,16 @@ module aes_kb(
     		md5_w <= 1'b0;
     		valid <= 1'b0;
     		done <= 1'b0;
-                        data<='b0;
-                        hash <= 'b0;
-                        encrypted_hash<='b0;
+            data<='b0;
+            hash <= 'b0;
+            encrypted_hash<='b0;
     	end else if(!stall) begin
     		case(state)
     			2'b00: begin
     				if(start) begin
     					state <= 2'b01;
     					count <= 0;
-                                                            encrypted_hash <= in_buf;
+                        encrypted_hash <= in_buf;
     				end else begin
     					/* do nothing */
     					done <= 1'b0;
@@ -106,8 +106,8 @@ module aes_kb(
     				if(md5_done) begin
     					state <= 2'b10;
     					count <= 0;
-                                                            hash <= aes_key;
-                                                            data <= encrypted_hash;
+                        hash <= aes_key;
+                        data <= encrypted_hash;
     				end else begin
     					if(count==16) begin
 	    					/* wait until done */

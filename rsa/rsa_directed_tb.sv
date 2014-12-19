@@ -30,6 +30,7 @@ module rsa_directed_test();
     $vcdpluson();
     clk = 0;
     rst = 1;
+    stall = 0;
 
     //reset   
     #1 clk = 1;

@@ -117,6 +117,9 @@ module aes_kb(
 	    							        //was just put on AES
 	    						state <= 2'b10;
 	    						count <= 0; //TODO should this be 1? 
+                                                                                    md5_wa <= 'b0;
+                                                                                    md5_data <= 'b0;
+                                                                                    md5_w <= 1'b0;
 	    					end
     					end else begin
     						/* push data into md5 */

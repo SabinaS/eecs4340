@@ -17,7 +17,7 @@ help:
 	echo " help     - show this information";\
 
 spibench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(SPI_TOP) $(SPI_BENCH) $(MODULES) -o $(SPI_OUTPUT) 
+	vcs -full64 -cm_tgl mda -cm line+tgl+cond+fsm+branch+assert -debug_pp +lint=all,noVCDE -sverilog +define+SV +define+VPD -notice $(SPI_TOP) $(SPI_BENCH) $(MODULES) -o $(SPI_OUTPUT) 
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd

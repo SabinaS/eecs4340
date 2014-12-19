@@ -33,6 +33,20 @@ logic [10:0] ps2_word;
 logic error;
 logic [15:0] count_idle;  					/* todo: check */
 
+/* instancing debounce */
+debounce debounce_ps2_clk(
+	.clk(clk),
+	.button(sync_ffs[0]),
+	.result(ps2_clk_int)
+);
+defparam debouce_ps2_clk.counter_size = debounce_counter_size;
+
+debounce debounce_ps2_data(
+	.clk(clk),
+	.button(sync_ffs[1]),
+	.result(ps2_data_int)
+);
+defparam debouce_ps2_data.counter_size = debounce_counter_size;
 
 /* Behavior */
 always_ff @(posedge clk) begin
@@ -51,21 +65,6 @@ always_ff @(posedge clk) begin
 		sync_ffs[0] <= ps2_clk;
 		sync_ffs[1] <= ps2_data; 
 	end
-
-	/* instancing debounce */
-	debounce debounce_ps2_clk(
-		.clk(clk),
-		.button(sync_ffs[0]),
-		.result(ps2_clk_int)
-	);
-	defparam debouce_ps2_clk.counter_size = debounce_counter_size;
-
-	debounce debounce_ps2_data(
-		.clk(clk),
-		.button(sync_ffs[1]),
-		.result(ps2_data_int)
-	);
-	defparam debouce_ps2_data.counter_size = debounce_counter_size;
 
 	/* input ps2 data */
 	if (ps2_clk_int == '0) begin

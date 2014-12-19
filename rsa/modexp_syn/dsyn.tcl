@@ -25,7 +25,7 @@ define_design_lib WORK -path ./WORK
 ##################################################################
 set myFiles [glob rtl/*.sv]; # RTL source files
 set fileFormat sverilog; # verilog or sverilog
-set basename md5; # Top-level module name
+set basename modexp; # Top-level module name
 
 # Clock information
 set CLK "clk"; # The name of your clock

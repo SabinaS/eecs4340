@@ -4,7 +4,8 @@ PS2_OUTPUT = ps2testbench.exe
 
 MODULES = ps2_converter.sv \
 			debounce.sv \
-			ps2_ifc.sv
+			ps2_ifc.sv \
+			ps2_core.sv
 
 .PHONY: all
 all: ps2bench

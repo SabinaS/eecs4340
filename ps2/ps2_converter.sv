@@ -43,7 +43,7 @@ logic state;									/* state machine */
 logic init; 
 
 /* instance the ps2 keyboard module */
-ps2_top ps2_keyboard(
+ps2_core ps2_keyboard(
 	.clk(clk),
 	.ps2_clk(ps2_clk),
 	.ps2_data(ps2_data),

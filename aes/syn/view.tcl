@@ -1,1 +1,1 @@
-read_file -format verilog cam_cell_synth.v
+read_file -format verilog aes_synth.v

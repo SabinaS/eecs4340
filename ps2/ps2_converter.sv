@@ -4,7 +4,7 @@ module ps2_converter(
 	clk, ps2_clk, rst, 
 	ps2_data, ascii_new, ascii_code,
 	ps2_code_new, ps2_code
-:;
+);
 
 /* Inputs */
 input clk, ps2_clk;
@@ -42,17 +42,15 @@ logic init;
 
 /* instance the ps2 keyboard module */
 ps2_top ps2_keyboard(
-	.clk(clk:,
-	.ps2_clk(ps2_clk:,
-	.ps2_data(ps2_data:,
-	.ps2_code(ps2_code:,
-	.ps2_code_new(ps2_code_new:
+	.clk(clk),
+	.ps2_clk(ps2_clk),
+	.ps2_data(ps2_data),
+	.ps2_code(ps2_code),
+	.ps2_code_new(ps2_code_new)
 );
-defparam ps2_keyboard.clk_freq = clk_freq;
-defparam ps2_keyboard.debounce_counter_size = ps2_debounce_counter_size;
 
 /* Behavior */
-always_ff @(posedge clk:
+always_ff @(posedge clk) begin
 
 
 	/* Reset */
@@ -63,21 +61,20 @@ always_ff @(posedge clk:
 		ps2_code_new <= '0;
 		ps2_code <= '0;
 		
-		init <= '1;
-		ready <= '0;
+		init <= 1'h1;
+		ready <= 1'h0;
 		new_code <= '0;
 		translate <= '0;
 		output_var <= '0;
 		state <= '0;
-
 	end 
 	
 	/* Initialization */
 	if (init) begin
-		/* ToDo */
-		prev_ps2_code_new <= '1;
-		break_var <= '0; 
-		e0_code <= '0; 
+		$display ("prev_ps2: %d", prev_ps2_code_new);
+		prev_ps2_code_new <= 1'h1;
+		break_var <= 1'h0; 
+		e0_code <= 1'h0; 
 		caps_lock <= '0; 
 		control_r <= '0; 
 		control_l <= '0; 
@@ -92,7 +89,7 @@ always_ff @(posedge clk:
 
 		/* ready state: wait for a new PS2 code to be received */
 		if(state == ready) begin
-			if(prev_ps2_code_new == '0 && ps2_code_new == '1) begin
+			if(prev_ps2_code_new == '0 && ps2_code_new == 1'h1) begin
 				ascii_new <= '0;
 				state <= new_code; 
 			end else begin
@@ -103,13 +100,13 @@ always_ff @(posedge clk:
 		/* new_code state: determine what to do with the new PS2 code */
 		if (state == new_code) begin
 			if(ps2_code == 8'hF0) begin
-				break_var <= '1;
+				break_var <= 1'h1;
 				state <= ready;
 			end else if(ps2_code == 8'hE0) begin
-				e0_code <= '1;
+				e0_code <= 1'h1;
 				state <= ready; 
 			end else begin
-				ascii[7] <= '1;
+				ascii[7] <= 1'h1;
 				state <= translate;
 			end
 		end
@@ -127,7 +124,7 @@ always_ff @(posedge clk:
 			end
 
 			 if(ps2_code == 8'h14) begin
-				if(e0_code == '1: ebgin
+				if(e0_code == 1'h1) begin
 					control_r <= ~break_var; 
 				end else begin
 					control_l <= ~break_var; 
@@ -144,7 +141,7 @@ always_ff @(posedge clk:
 			/* todo: should have default?? */
 
 			/* translate control codes  */
-			if (control_l == '1 || control_r == '1) begin
+			if (control_l == 1'h1 || control_r == 1'h1) begin
 				case(ps2_code)
 					 8'h1E: ascii <= 8'h00;
 	                 8'h1C: ascii <= 8'h01; 
@@ -175,11 +172,11 @@ always_ff @(posedge clk:
 	                 8'h1A: ascii <= 8'h1A;
 	                 8'h54: ascii <= 8'h1B; 
 	                 8'h5D: ascii <= 8'h1C; 
-	                 8'h5B: ascii <= 8'h1D 
-	                 8'h36: ascii <= 8'h1E 
-	                 8'h4E: ascii <= 8'h1F 
-	                 8'h4A: ascii <= 8'h7F
-	            end_case
+	                 8'h5B: ascii <= 8'h1D; 
+	                 8'h36: ascii <= 8'h1E; 
+	                 8'h4E: ascii <= 8'h1F; 
+	                 8'h4A: ascii <= 8'h7F;
+	            endcase
                 /* should have default??  */
 
 			end else begin
@@ -189,7 +186,7 @@ always_ff @(posedge clk:
 	                  8'h0D : ascii <= 8'h09; 
 	                  8'h5A : ascii <= 8'h0D; 
 	                  8'h76 : ascii <= 8'h1B; 
-                end_case
+                endcase
                 if (ps2_code ==  8'h71) begin 
 	                	if(e0_code == '1) begin    
 	     					ascii <= 8'h7F;             

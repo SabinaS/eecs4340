@@ -3,7 +3,7 @@
 interface rsa_ifc (input bit clk);
 	logic             rst, stall;
 
-	logic [31:0]      rsa_data_i, aes_data_i, out_data_o;
+	logic [127:0]     rsa_data_i, aes_data_i, out_data_o;
 	logic [7:0]       ps2_data_i;
 	logic             rsa_valid_i, aes_valid_i, out_valid_o, ps2_valid_i;
 	logic             rsa_ready_o, aes_ready_o, out_ready_i;

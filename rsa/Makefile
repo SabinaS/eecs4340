@@ -15,6 +15,7 @@ MODULES = rsa.sv \
           ../md5/md5.sv \
           ../md5/md5_chunk_cruncher.sv \
           ../md5/*calc.sv \
+          ../md5/md5_padder_length.sv \
           ../md5/md5_leftrotate.sv \
           ../memory/*.sv \
           ../memory/altsyncram.v \

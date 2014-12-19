@@ -9,14 +9,16 @@ module modexp_directed_test();
   logic rst;
   logic stall;
   logic [4095:0] exp, mod; //would actually want to chunk this
-  logic [127:0] key_i;
+  logic [4095:0] key_i;
   logic start;
+  logic [4095:0] modexp_out;
   logic [127:0] key_o;
   logic done, valid;
   integer i;
  
-  modexp modexp_inst(.*);
+  assign key_o = modexp_out[127:0];
 
+  modexp modexp_inst(.key_o(modexp_out), .*);
 
   initial begin
     $vcdpluson();

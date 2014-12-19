@@ -1,7 +1,7 @@
 class transaction;
 	// vars
 	rand logic [4095:0] exp, mod;
-	rand logic [127:0] key_i; /* really padded with zeros */
+	rand logic [4095:0] key_i; /* really padded with zeros */
 	logic [4095:0] key_o;
 	logic [8191:0] intermediate;
 
@@ -21,7 +21,7 @@ class transaction;
 		key_o = intermediate[4095:0];
 	endfunction
 
-	function bit verify_data(logic[127:0] recieved);
+	function bit verify_data(logic[4095:0] recieved);
 		return (recieved == key_o);
 	endfunction
 

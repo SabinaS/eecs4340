@@ -8,13 +8,13 @@ module modexp(
 );
 	input logic clk, rst, stall;
 	input logic [4095:0] exp, mod; //would actually want to chunk this
-	input logic [127:0] key_i;
+	input logic [4095:0] key_i;
 	input logic start;
-	output logic [127:0] key_o;
+	output logic [4095:0] key_o;
 	output logic done, valid;
 
 
-	logic [127:0] intermediate;
+	logic [8191:0] intermediate;
 	integer i;
 	logic run;
 

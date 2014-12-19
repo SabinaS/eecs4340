@@ -8,8 +8,7 @@ module ps2_port #(
 	ps2_ifc.dut d
 );
 
-ps2_core #(CLK_MHZ, BUS_WIDTH, SCLK_WAIT, COMMAND_WIDTH,
-	  INTERNAL_DAT_WIDTH, COMMAND_BUF_SIZE) ps2_core
+ps2_core #(CLK_MHZ, BUS_WIDTH, SCLK_WAIT) ps2_core
 			(
 				.clk(d.clk),
 				.rst(d.rst),

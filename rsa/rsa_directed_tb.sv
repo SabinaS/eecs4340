@@ -38,10 +38,26 @@ module rsa_directed_test();
     rsa_data_i = 128'h11111111111111111111111111111111;
     rsa_valid_i = 1;
 
-    for(i = 0;i<66;i=i+1) begin
+    /* state 0 */
+    for(i = 0;i<65;i=i+1) begin
     #1 clk = 1;
     #1 clk = 0;
     end
+
+    rsa_data_i = 'b0;
+    rsa_valid_i = 1'b0;
+
+    /* state 1 */
+    ps2_done = 1'b0;
+    ps2_reset = 1'b0;
+    ps2_data_i = 8'b00000000;
+    ps2_valid_i = 1'b1;
+    for(i=0;i<55;i=i+1) begin /* modify for corner cases */
+    #1 clk = 1;
+    #1 clk = 0;
+    ps2_data_i = (ps2_data_i + 1'b00000001) % 8'b11111111;
+    end
+
     #1 clk = 1;
     #1 clk = 0;
     #1 clk = 1;

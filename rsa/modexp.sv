@@ -31,7 +31,7 @@ module modexp(
 		if(rst) begin
 			run=1'b0;
 			i<=4095;
-		end else begin
+		end else if (!stall) begin
 			if(start) begin
 				run<=1'b1;
 			end
@@ -49,18 +49,18 @@ module modexp(
 
 	always_ff @(posedge clk) begin
 		if(rst) begin
-			intermediate <= 'b1;
+			intermediate <= 'b01;
 			done <= 1'b0;
 			valid <= 1'b0;
 		end else if(!stall) begin
 			if(run) begin
 				if(i==0) begin
-					key_o <= (intermediate * (exp[i] ? key_i: 'b01)) % mod;
+					key_o <= ((intermediate * (exp[i] ? key_i: 'b01)) % mod);
 					done <= 1'b1;
 					valid <= 1'b1;
 				end else begin
 					if (exp[i]) begin
-						intermediate <= ((intermediate * key_i) * (intermediate * key_i)) % mod;
+						intermediate <= (((intermediate * key_i) % mod) * ((intermediate * key_i) % mod)) % mod;
 					end else begin
 						intermediate <= (intermediate * intermediate) % mod;
 					end

@@ -3,7 +3,7 @@
 module ps2_converter(
 	clk, ps2_clk, rst, 
 	ps2_data, ascii_new, ascii_code,
-	ps2_code_new, ps2_code
+	ps2_code_new, ps2_code, valid
 );
 
 /* Inputs */
@@ -12,9 +12,11 @@ input rst;
 input ps2_data; 								/* data signal from PS2 keyboard */
 
 /* Outputs */
-output ascii_new, ascii_code;
-output ps2_code_new;							/* flag that new PS/2 code is available on ps2_code bus */
-output [7:0] ps2_code; 							/* PS2 code input form ps2_keyboard component */
+output logic ascii_new;
+output logic ascii_code;
+output logic ps2_code_new;							/* flag that new PS/2 code is available on ps2_code bus */
+output logic [7:0] ps2_code; 							/* PS2 code input form ps2_keyboard component */
+output logic valid; 
 
 /* Variables */
 wire [25:0] clk_freq = 26'h2FAF080;						/* todo: check this */
@@ -46,7 +48,8 @@ ps2_top ps2_keyboard(
 	.ps2_clk(ps2_clk),
 	.ps2_data(ps2_data),
 	.ps2_code(ps2_code),
-	.ps2_code_new(ps2_code_new)
+	.ps2_code_new(ps2_code_new),
+	.valid(valid)
 );
 
 /* Behavior */
@@ -58,8 +61,6 @@ always_ff @(posedge clk) begin
 		/* ToDo */
 		ascii_new <= '0;
 		ascii_code <= '0;
-		ps2_code_new <= '0;
-		ps2_code <= '0;
 		
 		init <= 1'h1;
 		ready <= 1'h0;
@@ -180,7 +181,7 @@ always_ff @(posedge clk) begin
                 /* should have default??  */
 
 			end else begin
-				case(ps2_code) begin
+				case(ps2_code)
 					  8'h29 : ascii <= 8'h20; 
 	                  8'h66 : ascii <= 8'h08; 
 	                  8'h0D : ascii <= 8'h09; 
@@ -194,9 +195,8 @@ always_ff @(posedge clk) begin
 	            end
                 /* should have defualt?? */
 
-                if( (shift_r == '0 && shift_l == '0 && caps_lock == '0: 
-                		|| ((shift_r == '1 || shift_l == '1: 
-                		&& caps_lock == '1))) begin 
+                if( (shift_r == '0 && shift_l == '0 && caps_lock == '0) || ((shift_r == '1 || shift_l == '1) 
+                		&& caps_lock == '1)) begin 
                 	case(ps2_code)
 	                	  8'h1C: ascii <= 8'h61; 
 						  8'h32: ascii <= 8'h62; 
@@ -224,7 +224,8 @@ always_ff @(posedge clk) begin
 						  8'h22: ascii <= 8'h78; 
 						  8'h35: ascii <= 8'h79; 
 						  8'h1A: ascii <= 8'h7A; 
-                end else begin
+               		endcase
+		 end else begin
                 	case(ps2_code) 
 	                	  8'h1C: ascii <= 8'h41; 
 						  8'h32: ascii <= 8'h42; 

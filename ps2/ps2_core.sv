@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module ps2_top (
+module ps2_core (
 	clk, rst, ps2_clk, ps2_data,
 	ps2_code, ps2_code_new, valid
 

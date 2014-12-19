@@ -114,6 +114,7 @@ module aes_kb(
                                                             data <= encrypted_hash;
     				end else begin
     					if(count==16) begin
+                                                                        md5_start <= 1'b1;
 	    					/* wait until done */
 	    					if(md5_done) begin //start counting, valid data
 	    							        //was just put on AES

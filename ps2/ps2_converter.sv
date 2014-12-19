@@ -17,8 +17,8 @@ output ps2_code_new;							/* flag that new PS/2 code is available on ps2_code b
 output [7:0] ps2_code; 							/* PS2 code input form ps2_keyboard component */
 
 /* Variables */
-logic clk_freq = 0x50000000;					/* todo: check this */
-logic ps2_debounce_counter_size = 0x8;
+wire [25:0] clk_freq = 26'h2FAF080;						/* todo: check this */
+wire [3:0] ps2_debounce_counter_size = 4'h8;
 
 logic prev_ps2_code_new;						/* value of ps2_code_new flag on previous clock, init: 1 */
 logic break; 									/* '1 for break code, '0' for make code, init: 0*/

@@ -59,22 +59,16 @@ module rsa_directed_test();
     ps2_data_i = (ps2_data_i + 1'b00000001) % 8'b11111111;
     end
 
+    ps2_data_i <= 'b0;
+    ps2_valid_i <= 'b0;
+
+    /* state 2 */
+    for(i=0;i<(64+38);i=i+1) begin 
     #1 clk = 1;
     #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
-    #1 clk = 1;
-    #1 clk = 0;
+    end
+
+
     #1 clk = 1;
     #1 clk = 0;
     #1 $finish;

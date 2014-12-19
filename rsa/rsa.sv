@@ -124,7 +124,7 @@ module rsa(
 				end
 
 				3'b001: begin //buffer keyboard input 
-					if(count == 56 || (ps2_done && ps2_valid_i)) begin
+					if(count == 55 || (ps2_done && ps2_valid_i)) begin
 						state <= 3'b010;
 						count <= 0;
 						start_kb_decrypt <= 1'b1;

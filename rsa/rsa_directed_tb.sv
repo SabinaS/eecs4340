@@ -61,10 +61,10 @@ module rsa_directed_test();
     #1 $finish;
   end
 
-  //initial  begin
-   //  $display("");
-    // $monitor("%h,%h,%h", key_o, pay_o, dne_o);
-  //end
+  initial  begin
+     $display("data \t valid ");
+     $monitor("%h,%h", out_data_o, out_valid_o);
+  end
 
 
 endmodule

@@ -248,110 +248,110 @@ always_ff @(posedge clk) begin
      					ascii <= 0x7F;             
                   	end
                 endcase
-                /* should ahve defualt?? */
+                /* should have defualt?? */
 
                 if( (shift_r == '0 && shift_l == '0 && caps_lock == '0) 
                 		|| ((shift_r == '1 || shift_l == '1) 
                 		&& caps_lock == '1) ) begin
-                	case (ps2_code ==  0x1C) ascii <= 0x61; 
-					case (ps2_code ==  0x32) ascii <= 0x62; 
-					case (ps2_code ==  0x21) ascii <= 0x63; 
-					case (ps2_code ==  0x23) ascii <= 0x64; --d
-					case (ps2_code ==  0x24) ascii <= 0x65; --e
-					case (ps2_code ==  0x2B) ascii <= 0x66; --f
-					case (ps2_code ==  0x34) ascii <= 0x67; --g
-					case (ps2_code ==  0x33) ascii <= 0x68; --h
-					case (ps2_code ==  0x43) ascii <= 0x69; --i
-					case (ps2_code ==  0x3B) ascii <= 0x6A; --j
-					case (ps2_code ==  0x42) ascii <= 0x6B; --k
-					case (ps2_code ==  0x4B) ascii <= 0x6C; --l
-					case (ps2_code ==  0x3A) ascii <= 0x6D; --m
-					case (ps2_code ==  0x31) ascii <= 0x6E; --n
-					case (ps2_code ==  0x44) ascii <= 0x6F; --o
-					case (ps2_code ==  0x4D) ascii <= 0x70; --p
-					case (ps2_code ==  0x15) ascii <= 0x71; --q
-					case (ps2_code ==  0x2D) ascii <= 0x72; --r
-					case (ps2_code ==  0x1B) ascii <= 0x73; --s
-					case (ps2_code ==  0x2C) ascii <= 0x74; --t
-					case (ps2_code ==  0x3C) ascii <= 0x75; --u
-					case (ps2_code ==  0x2A) ascii <= 0x76; --v
-					case (ps2_code ==  0x1D) ascii <= 0x77; --w
-					case (ps2_code ==  0x22) ascii <= 0x78; --x
-					case (ps2_code ==  0x35) ascii <= 0x79; --y
-					case (ps2_code ==  0x1A) ascii <= 0x7A; --z
+                	case (ps2_code ==  0x1C) ascii <= 0x61; endcase
+					case (ps2_code ==  0x32) ascii <= 0x62; endcase
+					case (ps2_code ==  0x21) ascii <= 0x63; endcase
+					case (ps2_code ==  0x23) ascii <= 0x64; endcase
+					case (ps2_code ==  0x24) ascii <= 0x65; endcase
+					case (ps2_code ==  0x2B) ascii <= 0x66; endcase
+					case (ps2_code ==  0x34) ascii <= 0x67; endcase
+					case (ps2_code ==  0x33) ascii <= 0x68; endcase
+					case (ps2_code ==  0x43) ascii <= 0x69; endcase
+					case (ps2_code ==  0x3B) ascii <= 0x6A; endcase
+					case (ps2_code ==  0x42) ascii <= 0x6B; endcase
+					case (ps2_code ==  0x4B) ascii <= 0x6C; endcase
+					case (ps2_code ==  0x3A) ascii <= 0x6D; endcase
+					case (ps2_code ==  0x31) ascii <= 0x6E; endcase
+					case (ps2_code ==  0x44) ascii <= 0x6F; endcase
+					case (ps2_code ==  0x4D) ascii <= 0x70; endcase
+					case (ps2_code ==  0x15) ascii <= 0x71; endcase
+					case (ps2_code ==  0x2D) ascii <= 0x72; endcase
+					case (ps2_code ==  0x1B) ascii <= 0x73; endcase
+					case (ps2_code ==  0x2C) ascii <= 0x74; endcase
+					case (ps2_code ==  0x3C) ascii <= 0x75; endcase
+					case (ps2_code ==  0x2A) ascii <= 0x76; endcase
+					case (ps2_code ==  0x1D) ascii <= 0x77; endcase
+					case (ps2_code ==  0x22) ascii <= 0x78; endcase
+					case (ps2_code ==  0x35) ascii <= 0x79; endcase
+					case (ps2_code ==  0x1A) ascii <= 0x7A; endcase
                 end else begin
-                	case (ps2_code ==  0x1C) ascii <= 0x41; --A
-					case (ps2_code ==  0x32) ascii <= 0x42; --B
-					case (ps2_code ==  0x21) ascii <= 0x43; --C
-					case (ps2_code ==  0x23) ascii <= 0x44; --D
-					case (ps2_code ==  0x24) ascii <= 0x45; --E
-					case (ps2_code ==  0x2B) ascii <= 0x46; --F
-					case (ps2_code ==  0x34) ascii <= 0x47; --G
-					case (ps2_code ==  0x33) ascii <= 0x48; --H
-					case (ps2_code ==  0x43) ascii <= 0x49; --I
-					case (ps2_code ==  0x3B) ascii <= 0x4A; --J
-					case (ps2_code ==  0x42) ascii <= 0x4B; --K
-					case (ps2_code ==  0x4B) ascii <= 0x4C; --L
-					case (ps2_code ==  0x3A) ascii <= 0x4D; --M
-					case (ps2_code ==  0x31) ascii <= 0x4E; --N
-					case (ps2_code ==  0x44) ascii <= 0x4F; --O
-					case (ps2_code ==  0x4D) ascii <= 0x50; --P
-					case (ps2_code ==  0x15) ascii <= 0x51; --Q
-					case (ps2_code ==  0x2D) ascii <= 0x52; --R
-					case (ps2_code ==  0x1B) ascii <= 0x53; --S
-					case (ps2_code ==  0x2C) ascii <= 0x54; --T
-					case (ps2_code ==  0x3C) ascii <= 0x55;  
-					case (ps2_code ==  0x2A) ascii <= 0x56;  
-					case (ps2_code ==  0x1D) ascii <= 0x57;  
-					case (ps2_code ==  0x22) ascii <= 0x58;  
-					case (ps2_code ==  0x35) ascii <= 0x59;  
-					case (ps2_code ==  0x1A) ascii <= 0x5A; 
+                	case (ps2_code ==  0x1C) ascii <= 0x41; endcase
+					case (ps2_code ==  0x32) ascii <= 0x42; endcase
+					case (ps2_code ==  0x21) ascii <= 0x43; endcase
+					case (ps2_code ==  0x23) ascii <= 0x44; endcase
+					case (ps2_code ==  0x24) ascii <= 0x45; endcase
+					case (ps2_code ==  0x2B) ascii <= 0x46; endcase
+					case (ps2_code ==  0x34) ascii <= 0x47; endcase
+					case (ps2_code ==  0x33) ascii <= 0x48; endcase
+					case (ps2_code ==  0x43) ascii <= 0x49; endcase
+					case (ps2_code ==  0x3B) ascii <= 0x4A; endcase
+					case (ps2_code ==  0x42) ascii <= 0x4B; endcase
+					case (ps2_code ==  0x4B) ascii <= 0x4C; endcase
+					case (ps2_code ==  0x3A) ascii <= 0x4D; endcase
+					case (ps2_code ==  0x31) ascii <= 0x4E; endcase
+					case (ps2_code ==  0x44) ascii <= 0x4F; endcase
+					case (ps2_code ==  0x4D) ascii <= 0x50; endcase
+					case (ps2_code ==  0x15) ascii <= 0x51; endcase
+					case (ps2_code ==  0x2D) ascii <= 0x52; endcase
+					case (ps2_code ==  0x1B) ascii <= 0x53; endcase
+					case (ps2_code ==  0x2C) ascii <= 0x54; endcase 
+					case (ps2_code ==  0x3C) ascii <= 0x55; endcase 
+					case (ps2_code ==  0x2A) ascii <= 0x56; endcase 
+					case (ps2_code ==  0x1D) ascii <= 0x57; endcase
+					case (ps2_code ==  0x22) ascii <= 0x58; endcase
+					case (ps2_code ==  0x35) ascii <= 0x59; endcase
+					case (ps2_code ==  0x1A) ascii <= 0x5A; endcase
                 end
 
                 if(shift_l == '1 || shift_r == '1) begin
-                	case (ps2_code ==  0x16) ascii <= 0x21; --!
-					case (ps2_code ==  0x52) ascii <= 0x22; --
-					case (ps2_code ==  0x26) ascii <= 0x23; --#
-					case (ps2_code ==  0x25) ascii <= 0x24; --$
-					case (ps2_code ==  0x2E) ascii <= 0x25; --%
-					case (ps2_code ==  0x3D) ascii <= 0x26; --&              
-					case (ps2_code ==  0x46) ascii <= 0x28; --(
-					case (ps2_code ==  0x45) ascii <= 0x29; --)
-					case (ps2_code ==  0x3E) ascii <= 0x2A; --*
-					case (ps2_code ==  0x55) ascii <= 0x2B; --+
-					case (ps2_code ==  0x4C) ascii <= 0x3A; --:
-					case (ps2_code ==  0x41) ascii <= 0x3C; --<
-					case (ps2_code ==  0x49) ascii <= 0x3E; -->
-					case (ps2_code ==  0x4A) ascii <= 0x3F; --?
-					case (ps2_code ==  0x1E) ascii <= 0x40; --@
-					case (ps2_code ==  0x36) ascii <= 0x5E; --^
-					case (ps2_code ==  0x4E) ascii <= 0x5F; --_
-					case (ps2_code ==  0x54) ascii <= 0x7B; --{
-					case (ps2_code ==  0x5D) ascii <= 0x7C; --|
-					case (ps2_code ==  0x5B) ascii <= 0x7D; --}
-					case (ps2_code ==  0x0E) ascii <= 0x7E; --~
+                	case (ps2_code ==  0x16) ascii <= 0x21; endcase
+					case (ps2_code ==  0x52) ascii <= 0x22; endcase
+					case (ps2_code ==  0x26) ascii <= 0x23; endcase
+					case (ps2_code ==  0x25) ascii <= 0x24; endcase
+					case (ps2_code ==  0x2E) ascii <= 0x25; endcase
+					case (ps2_code ==  0x3D) ascii <= 0x26; endcase              
+					case (ps2_code ==  0x46) ascii <= 0x28; endcase
+					case (ps2_code ==  0x45) ascii <= 0x29; endcase
+					case (ps2_code ==  0x3E) ascii <= 0x2A; endcase
+					case (ps2_code ==  0x55) ascii <= 0x2B; endcase
+					case (ps2_code ==  0x4C) ascii <= 0x3A; endcase
+					case (ps2_code ==  0x41) ascii <= 0x3C; endcase
+					case (ps2_code ==  0x49) ascii <= 0x3E; endcase
+					case (ps2_code ==  0x4A) ascii <= 0x3F; endcase
+					case (ps2_code ==  0x1E) ascii <= 0x40; endcase
+					case (ps2_code ==  0x36) ascii <= 0x5E; endcase
+					case (ps2_code ==  0x4E) ascii <= 0x5F; endcase
+					case (ps2_code ==  0x54) ascii <= 0x7B; endcase
+					case (ps2_code ==  0x5D) ascii <= 0x7C; endcase
+					case (ps2_code ==  0x5B) ascii <= 0x7D; endcase
+					case (ps2_code ==  0x0E) ascii <= 0x7E; endcase
                 end else begin
-                	case (ps2_code ==  0x45) ascii <= 0x30; --0
-					case (ps2_code ==  0x16) ascii <= 0x31; --1
-					case (ps2_code ==  0x1E) ascii <= 0x32; --2
-					case (ps2_code ==  0x26) ascii <= 0x33; --3
-					case (ps2_code ==  0x25) ascii <= 0x34; --4
-					case (ps2_code ==  0x2E) ascii <= 0x35; --5
-					case (ps2_code ==  0x36) ascii <= 0x36; --6
-					case (ps2_code ==  0x3D) ascii <= 0x37; --7
-					case (ps2_code ==  0x3E) ascii <= 0x38; --8
-					case (ps2_code ==  0x46) ascii <= 0x39; --9
-					case (ps2_code ==  0x52) ascii <= 0x27; --'
-					case (ps2_code ==  0x41) ascii <= 0x2C; --,
-					case (ps2_code ==  0x4E) ascii <= 0x2D; ---
-					case (ps2_code ==  0x49) ascii <= 0x2E; --.
-					case (ps2_code ==  0x4A) ascii <= 0x2F; --/
-					case (ps2_code ==  0x4C) ascii <= 0x3B; --;
-					case (ps2_code ==  0x55) ascii <= 0x3D; --=
-					case (ps2_code ==  0x54) ascii <= 0x5B; --[
-					case (ps2_code ==  0x5D) ascii <= 0x5C; --\
-					case (ps2_code ==  0x5B) ascii <= 0x5D; --]
-					case (ps2_code ==  0x0E) ascii <= 0x60; --`
+                	case (ps2_code ==  0x45) ascii <= 0x30; endcase
+					case (ps2_code ==  0x16) ascii <= 0x31; endcase
+					case (ps2_code ==  0x1E) ascii <= 0x32; endcase
+					case (ps2_code ==  0x26) ascii <= 0x33; endcase
+					case (ps2_code ==  0x25) ascii <= 0x34; endcase
+					case (ps2_code ==  0x2E) ascii <= 0x35; endcase
+					case (ps2_code ==  0x36) ascii <= 0x36; endcase
+					case (ps2_code ==  0x3D) ascii <= 0x37; endcase
+					case (ps2_code ==  0x3E) ascii <= 0x38; endcase
+					case (ps2_code ==  0x46) ascii <= 0x39; endcase
+					case (ps2_code ==  0x52) ascii <= 0x27; endcase
+					case (ps2_code ==  0x41) ascii <= 0x2C; endcase
+					case (ps2_code ==  0x4E) ascii <= 0x2D; endcase
+					case (ps2_code ==  0x49) ascii <= 0x2E; endcase
+					case (ps2_code ==  0x4A) ascii <= 0x2F; endcase
+					case (ps2_code ==  0x4C) ascii <= 0x3B; endcase
+					case (ps2_code ==  0x55) ascii <= 0x3D; endcase
+					case (ps2_code ==  0x54) ascii <= 0x5B; endcase
+					case (ps2_code ==  0x5D) ascii <= 0x5C; endcase
+					case (ps2_code ==  0x5B) ascii <= 0x5D; endcase
+					case (ps2_code ==  0x0E) ascii <= 0x60; endcase
                 end
 			end
 

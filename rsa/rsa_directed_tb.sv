@@ -19,6 +19,8 @@ module rsa_directed_test();
 
   logic led_pass_o, led_fail_o;
  
+ integer i;
+
   rsa rsa_inst(.*);
 
 
@@ -30,9 +32,14 @@ module rsa_directed_test();
     //reset   
     #1 clk = 1;
     #1 clk = 0;
+    rst = 0;
+    rsa_data_i = 128'h1111111111111111;
+    rsa_valid_i = 1;
 
+    for(i = 0;i<66;i=i+1) begin
     #1 clk = 1;
     #1 clk = 0;
+    end
     #1 clk = 1;
     #1 clk = 0;
     #1 clk = 1;

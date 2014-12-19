@@ -46,6 +46,10 @@ modexpbench_coverage:
 	/sim/synopsys/vcs/bin/urg -dir modexp_test.exe.vdb/
 	firefox urgReport/dashboard.html
 
+modexpdirbench_coverage:
+	vcs -full64 -cm line+tgl+cond+fsm+branch+assert -debug_pp -sverilog -notice +lint=all,noVCDE +define+SV +define+VPD modexp.sv modexp_directed_tb.sv -o modexp_test_directed.exe
+	./modexp_test_directed.exe
+	/sim/synopsys/vcs/bin/urg -dir modexp_test_directed.exe.vdb/
 
 rsabench: aes_lib
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(RSA_TOP) $(RSA_IFC) $(RSA_BENCH) \

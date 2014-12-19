@@ -13,7 +13,7 @@ md5bench:
 md5bench_coverage:
 	vcs -full64 -cm line+tgl+cond+fsm+branch+assert -debug_pp -sverilog -notice +lint=all,noVCDE +define+SV +define+VPD ./*.sv ../memory/*.sv ../memory/altsyncram.v -o md5testbench.exe 
 	./md5testbench.exe
-	/proj/castl/development/synopsys64/vcs/bin//urg -dir md5testbench.exe.vdb/
+	/sim/synopsys/vcs/bin/urg -dir md5testbench.exe.vdb/
 	firefox urgReport/dashboard.html
 
 wave:

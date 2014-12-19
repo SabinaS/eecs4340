@@ -35,8 +35,12 @@ module aes_kb(
 
 
     /* endianness ???? TODO */
-    assign kbd[15] = 32'b1000_0000_0000_0000_0000_0000_0000_0000;
-    assign kbd[14] = 32'b0000_0000_0000_0000_0000_0000_0000_0000;
+    // TODO
+    // TODO
+    // TODO
+    //SRSLY
+    assign kbd[15] = 32'b1000_0000_0000_0000_0000_0000_0000_0000; //will need to modify padding
+    assign kbd[14] = 32'b0000_0000_0000_0000_0000_0000_0000_0000; //will need to modify padding
     assign kbd[13] = kb[447:416];
     assign kbd[12] = kb[415:384];
     assign kbd[11] = kb[383:352];

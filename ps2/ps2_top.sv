@@ -24,14 +24,14 @@ output ps2_code_new;
 output valid; 
 
 /* Variables */
-wire [25:0] clk_freq = 26'h2FAF080;
-wire [3:0] debounce_counter_size = 4'h8; 
+logic [25:0] clk_freq = 26'h2FAF080;
+logic [3:0] debounce_counter_size = 4'h8; 
 logic [1:0] sync_ffs;
 logic ps2_clk_int;
 logic ps2_data_int;
 logic [10:0] ps2_word;
 logic error;
-wire [15:0] count_idle = 16'hADA;  					/* todo: check */
+logic [15:0] count_idle;  					/* todo: check */
 
 
 /* Behavior */
@@ -40,15 +40,10 @@ always_ff @(posedge clk) begin
 	/* Reset */
 	if (rst) begin
 		/* ToDo */
-		done_o <= '0;
-		rst_o <= '0;
-		valid_o <= '0;
-		data_o <= '0;
-		
-		init <= '1;
-		shift <= '0;
-		out_put <= '0;
-		convert <= '0; 
+		ps2_code <= '0;
+		ps2_code_new <= '0;
+		valid <= '0;
+
 	end 
 
 	/* synchronize the flipflops */
@@ -94,6 +89,7 @@ always_ff @(posedge clk) begin
     	if(count_idle == 16'hADA && error == '0) begin
     		ps2_code_new <= '1;
     		ps2_code <= ps2_word[8:1];
+    		valid = '1;
     	end else begin
     		ps2_code_new <= '0; 
     	end

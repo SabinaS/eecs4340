@@ -3,6 +3,7 @@ PS2_BENCH = ps2_tb.sv
 PS2_OUTPUT = ps2testbench.exe
 
 MODULES = ps2_converter.sv \
+			debounce.sv \
 			ps2_ifc.sv
 
 .PHONY: all
@@ -10,7 +11,7 @@ all: ps2bench
 
 help:
 	@echo "The following make targets are supported:" ;\
-	echo " spibench - builds the testbench";\
+	echo " ps2bench - builds the testbench";\
 	echo " wave     - convert vcd to vpd";\
 	echo " clean    - cleans testbench and intermediate files" ;\
 	echo " help     - show this information";\

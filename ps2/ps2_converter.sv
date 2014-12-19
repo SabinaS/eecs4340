@@ -76,8 +76,32 @@ always_ff @(posedge clk) begin
 		shift_r <= '0; 
 		shift_l <= '0; 
 		ascii <= 0xFF;
-		
+
 	end 
+
+	if (clk) begin
+		prev_ps2_code_new <= ps2_code_new;
+
+		case (state == ready)
+
+		endcase
+
+		case (state == new_code)
+			
+		endcase
+
+		case (state == translate)
+			
+		endcase
+
+		case (state == output)
+			if(ascii[7] == '0) begin
+				ascii_new <= '1;
+				ascii_code <= ascii[];
+			end
+			state <= ready; 						/* return to ready state to await next PS2 code*/ 
+		endcase
+	end
 
 
 end

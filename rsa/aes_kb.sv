@@ -115,14 +115,15 @@ module aes_kb(
     				end else begin
     					if(count==16) begin
                                                                         md5_start <= 1'b1;
+                                                                        md5_wa <= 'b0;
+                                                                        md5_data <= 'b0;
+                                                                        md5_w <= 1'b0;
 	    					/* wait until done */
 	    					if(md5_done) begin //start counting, valid data
 	    							        //was just put on AES
 	    						state <= 2'b10;
 	    						count <= 0; //TODO should this be 1? 
-                                                                                    md5_wa <= 'b0;
-                                                                                    md5_data <= 'b0;
-                                                                                    md5_w <= 1'b0;
+
 	    					end
     					end else begin
     						/* push data into md5 */
@@ -130,12 +131,6 @@ module aes_kb(
 						md5_data <= kbd[count];
 						md5_w <= 1'b1;
 						count <= count + 1;
-                                                                        if(count+1 == 16) begin
-                                                                            md5_wa <= 'b0;
-                                                                            md5_data <= 'b0;
-                                                                            md5_w <= 1'b0;
-                                                                            md5_start <= 1'b1;
-                                                                        end
     					end
     				end
     			end

@@ -29,6 +29,9 @@ md5bench:
 rsabench: 
 	make -C rsa/
 
+modexpbench: 
+	make modexp -C rsa/
+
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd
 	gtkwave waveform.vcd &

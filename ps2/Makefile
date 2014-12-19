@@ -2,7 +2,7 @@ PS2_TOP = ps2_top.sv
 PS2_BENCH = ps2_tb.sv
 PS2_OUTPUT = ps2testbench.exe
 
-MODULES = ps2_read.sv \
+MODULES = ps2_converter.sv \
 			ps2_ifc.sv
 
 .PHONY: all

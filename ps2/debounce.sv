@@ -12,7 +12,7 @@ input button;
 output rsult;
 
 /* Variables */
-wire [4:0] counter_size = 5'h13;
+logic [4:0] counter_size = 5'h13;		/* values passed in from ps2_top */
 logic [1:0] flipflops;
 logic counter_set;
 logic [counter_size:0] counter_out;

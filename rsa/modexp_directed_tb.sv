@@ -1,25 +1,19 @@
 /* 
  * Owner: Tim Paine
  */
-module rsa_directed_test();
+module modexp_directed_test();
 
   logic clk;
   logic rst;
   logic stall;
-  logic aes_valid_i, rsa_valid_i;
-  logic aes_ready_o, rsa_ready_o;
-  logic [127:0] aes_data_i, rsa_data_i;
+  logic [4095:0] exp, mod; //would actually want to chunk this
+  logic [127:0] key_i;
+  logic start;
+  logic [127:0] key_o;
+  logic done, valid;
 
-  logic [7:0] ps2_data_i; 
-  logic ps2_done, ps2_reset, ps2_valid_i;
-
-  logic [127:0] out_data_o;
-  logic out_valid_o;
-  logic out_ready_i;
-
-  logic led_pass_o, led_fail_o;
  
-  rsa rsa_inst(.*);
+  modexp modexp_inst(.*);
 
 
   initial begin

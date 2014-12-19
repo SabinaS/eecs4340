@@ -22,14 +22,12 @@ endclass
 program ps2_tb (ps2_ifc.bench ds);
 
 	transaction t;
-	testing_env v;
 
 	integer i, seed;
 	logic [7:0] rand_num;
 
 	initial begin
 		t = new();
-		v = new();
 
 		ds.cb.rst <= 1'b1;
 		@(ds.cb);
@@ -37,11 +35,11 @@ program ps2_tb (ps2_ifc.bench ds);
 		@(ds.cb);
 
 		seed = 1'b0; 
-		for(i=0; i< 100; i = i+1) begin
-			rand_ num = $random(seed) % 10000;
-			$display("rand_num %d", rand_num);
-			#1ns
-		end
+		/*for(i=0; i< 100; i = i+1) begin*/
+			$srandom(10);
+			$display("rand_num %d", $urandom_range(10,1));
+			/*#1ns*/
+		/*end*/
 
 
 		/* write a series of hex to the keyboard module */

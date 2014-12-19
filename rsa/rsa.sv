@@ -107,6 +107,7 @@ module rsa(
 			led_fail_o <= 1'b0;
 			aes_ready_o <= 1'b0;
 			rsa_ready_o <= 1'b1;
+			count<=0;
 		end else if(!stall) begin
 			case(state)
 				3'b000: begin //get all RSA stuff

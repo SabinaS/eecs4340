@@ -16,5 +16,3 @@ wave:
 
 clean:
 	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *exe *.key *.exe.vdb
-	make -C rsa/ clean
-	make -C md5/ clean

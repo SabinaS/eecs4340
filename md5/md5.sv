@@ -55,6 +55,10 @@ logic [5:0] cc_iaddr_unused;
 logic [3:0] cc_gaddr_unused;
 logic [4:0]  cc_sdata_unused;
 logic [31:0] cc_kdata_unused;
+assign cc_iaddr_unused = 'b0;
+assign cc_gaddr_unused = 'b0;
+assign cc_sdata_unused = 'b0;
+assign cc_kdata_unused = 'b0;
 
 sdatarom srom (
     .clock (clk),

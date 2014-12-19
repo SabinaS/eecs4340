@@ -34,6 +34,7 @@ end
 
 integer i;
 initial begin
+    $vcdpluson;
     testsequence[0] = 32'h01680208;
     testsequence[1] = 32'h13ab80bb;
     testsequence[2] = 32'hcb8b2c30;

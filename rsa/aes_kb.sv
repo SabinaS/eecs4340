@@ -129,11 +129,10 @@ module aes_kb(
                                                                         md5_data <= 'b0;
                                                                         md5_w <= 1'b0;
                                                                         running <= 1'b1;
-    					end else begin
+    					end else if(count <16) begin
     						/* push data into md5 */
 						md5_wa <= count[3:0];
 						md5_data <= kbd[count];
-						md5_w <= 1'b1;
 						count <= count + 1;
     					end
     				end

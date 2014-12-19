@@ -91,17 +91,17 @@ always_ff @(posedge clk:
 		prev_ps2_code_new <= ps2_code_new;
 
 		/* ready state: wait for a new PS2 code to be received */
-		case (state == ready:
+		if(state == ready) begin
 			if(prev_ps2_code_new == '0 && ps2_code_new == '1) begin
 				ascii_new <= '0;
 				state <= new_code; 
 			end else begin
 				state <= ready; 
 			end
-		
+		end
 
 		/* new_code state: determine what to do with the new PS2 code */
-		case (state == new_code) begin
+		if (state == new_code) begin
 			if(ps2_code == 8'hF0) begin
 				break_var <= '1;
 				state <= ready;
@@ -112,10 +112,10 @@ always_ff @(posedge clk:
 				ascii[7] <= '1;
 				state <= translate;
 			end
-		
+		end
 
 		/* translate state: translate PS2 code to ASCII value */
-		case (state == translate) begin
+		if (state == translate) begin
 			break_var <= '0;
 			e0_code <= '0;
 
@@ -314,15 +314,15 @@ always_ff @(posedge clk:
 			end else begin
 				state <= ready; 
 			end
-		
+		end
 
-		case (state == output_var:
+		if (state == output_var) begin
 			if(ascii[7] == '0) begin
 				ascii_new <= '1;
 				ascii_code <= ascii;				/* ToDo: should this be ascii_code <= ascii[6:0]?? */
 			end
 			state <= ready; 						/* return to ready state to await next PS2 code*/ 
-		
+		end
 	end
 
 

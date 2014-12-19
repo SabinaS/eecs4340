@@ -39,14 +39,12 @@ debounce debounce_ps2_clk(
 	.button(sync_ffs[0]),
 	.result(ps2_clk_int)
 );
-defparam debouce_ps2_clk.counter_size = debounce_counter_size;
 
 debounce debounce_ps2_data(
 	.clk(clk),
 	.button(sync_ffs[1]),
 	.result(ps2_data_int)
 );
-defparam debouce_ps2_data.counter_size = debounce_counter_size;
 
 /* Behavior */
 always_ff @(posedge clk) begin

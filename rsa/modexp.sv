@@ -52,7 +52,7 @@ module modexp(
 			intermediate <= 'b0;
 			done <= 1'b0;
 			valid <= 1'b0;
-		end else begin
+		end else if(!stall) begin
 			if(run) begin
 				if(i==4095) begin
 					key_o <= intermediate;

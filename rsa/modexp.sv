@@ -49,36 +49,20 @@ module modexp(
 
 	always_ff @(posedge clk) begin
 		if(rst) begin
-			intermediate <= 'b0;
+			intermediate <= 'b1;
 			done <= 1'b0;
 			valid <= 1'b0;
 		end else if(!stall) begin
 			if(run) begin
 				if(i==0) begin
-					key_o <= intermediate;
+					key_o <= (intermediate * (exp[i] ? key_i: '1)) % mod;
 					done <= 1'b1;
 					valid <= 1'b1;
 				end else begin
-				/*  Input: M, e, n
-					Output: M^e mod n
-					Let e contain k bits
-					if e[k-1] = 1 then C = M else C = 1
-					for i=k-2 down to 0
-					C = C*C
-					If e_i = 1 then C = C*M
-				*/
-					if(i==4095) begin //first iteration
-						if(exp[i] == 1'b1) begin
-							intermediate <= key_i;
-						end else begin
-							intermediate <= 'b0001;
-						end
+					if (exp[i]) begin
+						intermediate <= ((intermediate * key_i) * (intermediate * key_i)) % mod;
 					end else begin
-						if(exp[i] == 1'b1) begin
-							intermediate <= (intermediate*intermediate*key_i)%exp;
-						end else begin
-							intermediate <= (intermediate*intermediate)%exp;
-						end
+						intermediate <= (intermediate * intermediate) % mod;
 					end
 				end
 			end

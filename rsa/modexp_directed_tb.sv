@@ -31,9 +31,9 @@ module modexp_directed_test();
     #1 clk = 1;
     #1 clk = 0;
     rst = 0;
-    key_i = 'b00001;
-    exp = 'b00001;
-    mod = 'b00001;
+    key_i = 'b00011;
+    exp = 'b00111;
+    mod = 'b01011;
     start = 1;
     for(i=0;i<5000;i=i+1) begin
     #1 clk = 1;

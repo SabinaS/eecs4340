@@ -40,20 +40,20 @@ logic output_var;									/* state */
 logic state;									/* state machine */
 logic init; 
 
+/* instance the ps2 keyboard module */
+ps2_top ps2_keyboard(
+	.clk(clk),
+	.ps2_clk(ps2_clk),
+	.ps2_data(ps2_data,
+	.ps2_code(ps2_code),
+	.ps2_code_new(ps2_code_new)
+);
+defparam ps2_keyboard.clk_freq = clk_freq;
+defparam ps2_keyboard.debounce_counter_size = ps2_debounce_counter_size;
 
 /* Behavior */
 always_ff @(posedge clk) begin
 
-	/* instance the ps2 keyboard module */
-	ps2_top ps2_keyboard(
-		.clk(clk),
-		.ps2_clk(ps2_clk),
-		.ps2_data(ps2_data,
-		.ps2_code(ps2_code),
-		.ps2_code_new(ps2_code_new)
-	);
-	defparam ps2_keyboard.clk_freq = clk_freq;
-	defparam ps2_keyboard.debounce_counter_size = ps2_debounce_counter_size;
 
 	/* Reset */
 	if (rst) begin

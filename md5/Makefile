@@ -10,6 +10,12 @@ help:
 md5bench: 
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice ./*.sv ../memory/*.sv ../memory/altsyncram.v -o md5testbench.exe 
 
+md5bench_coverage:
+	vcs -full64 -cm line+tgl+cond+fsm+branch+assert -debug_pp -sverilog -notice +lint=all,noVCDE +define+SV +define+VPD ./*.sv ../memory/*.sv ../memory/altsyncram.v -o md5testbench.exe 
+	./md5testbench.exe
+	/sim/synopsys/vcs/bin/urg -dir md5testbench.exe.vdb/
+	firefox urgReport/dashboard.html
+
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd
 	gtkwave waveform.vcd &

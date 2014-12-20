@@ -30,6 +30,11 @@ parameter MILLISECOND_MHZ_WIDTH = $clog2(MILLISECOND_MHZ + 1);
 // The number of bits needed to represent all positions in COMMAND_SIZE
 parameter COMMAND_SIZE_WIDTH = $clog2(COMMAND_SIZE);
 
+parameter R1_SIZE = 8;
+parameter R1_SIZE_WIDTH = $clog2(R1_SIZE + 1);
+parameter R3_SIZE = 8 * 5;
+parameter R3_SIZE_WIDTH = $clog2(R3_SIZE + 1);
+
 /* the clock and reset signals */
 input clk, rst;
 /* from_slave_i: the MISO of the SPI protocol */
@@ -122,11 +127,19 @@ logic [SPI_CYCLE_INIT_WIDTH-1:0] ss_divider, ss_toggle_value;
 // A register used to count up to the number of cycles needed to elapse for a a full millisecond at our clock speed.
 logic [MILLISECOND_MHZ_WIDTH-1:0] ms_waiter;
 
-// The register to hold the command for chifting it out
+// The register to hold the command for shifting it out
 logic [COMMAND_SIZE-1:0] command;
 logic [COMMAND_SIZE_WIDTH-1:0] command_pos;
 logic command_sent;
 logic command_done;
+
+// For shifting in responses
+logic [R1_SIZE-1:0] r1_response;
+logic [R1_SIZE_WIDTH-1:0] r1_pos;
+logic r1_start;
+logic [R3_SIZE-1:0] r3_response;
+logic [R3_SIZE_WIDTH-1:0] r3_pos;
+logic r3_start;
 
 // STATES. The different "states" represented by this device, though more similar to mode of operation. Multiple states can be active at the same time, most commonly, SCLK_ACTIVE_STATE and READ_STATE/WRITE_STATE. Due to this, enums don't suite our purpose
 parameter STATES = 12;
@@ -207,6 +220,12 @@ always_ff @(posedge clk) begin
         crc16_valid <= '0;
         crc16_dat <= '0;
         crc16_rst <= '1;
+        r1_response <= '0;
+        r1_pos <= '0;
+        r1_start <= '0;
+        r3_response <= '0;
+        r3_pos <= '0;
+        r3_start <= '0;
         $display("Resetting");
         $display("MILLISECOND_MHZ: %d, MILLISECOND_MHZ_WIDTH: %d", MILLISECOND_MHZ, MILLISECOND_MHZ_WIDTH);
     // Reset takes precedence. remainder of the behavior
@@ -220,8 +239,9 @@ always_ff @(posedge clk) begin
         // Send out a command
         // DO_COMMAND has a latency of 1
         if (state[DO_COMMAND]) begin
-            if (sclk_posedge) $display("command: %b, mosi: %d, command << 1: %b, crc7_i: %b, command_pos: %d", command, mosi, command << 1, crc7_i, command_pos);
+            // if (sclk_posedge) $display("command: %b, mosi: %d, command << 1: %b, crc7_i: %b, command_pos: %d", command, mosi, command << 1, crc7_i, command_pos);
             // Shift out the bits
+            // if (sclk_posedge) $display("dut: mosi @%d ns: %d",$time, mosi);
             if (!command_sent) begin
                 if (command_pos == 0) command_sent <= '1;
                 command <= sclk_posedge ? command << 1 : command;
@@ -272,12 +292,35 @@ always_ff @(posedge clk) begin
             // State 0: send command
             end else if (state[INIT_CMD0_STATE]) begin
                 // Formatting the CMD0 command
-                if (!state[DO_COMMAND]) command <= {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1};
-                state[DO_COMMAND] <= command_done ? '0 : '1;
-                state[INIT_CMD0_STATE] <= command_done ? '0 : '1;
-                state[RECEIVE_R1_STATE] <= command_done ? '1 : '0;
-                if (command_done) command_done <= '0;
+                if (!state[DO_COMMAND]) begin
+                    // $display("command: %b", {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1});
+                    command <= {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1};
+                    state[DO_COMMAND] <= '1;
+                end
+
+                if (command_done) begin
+                    state[INIT_CMD0_STATE] <= '0;
+                    state[INIT_CMD8_STATE] <= '1;
+                    state[RECEIVE_R1_STATE] <= '1;
+                    command_done <= '0;
+                end
             end else if (state[RECEIVE_R1_STATE]) begin
+                if (sclk_posedge) begin
+                    if (!miso) begin
+                        r1_start <= '1;
+                        r1_response <= {r1_response[R1_SIZE-2:0], miso};
+                        r1_pos <= r1_pos + 1'b1;
+                    end else if (r1_start && r1_pos < 8) begin
+                        r1_response <= {r1_response[R1_SIZE-2:0], miso};
+                        r1_pos <= r1_pos + 1'b1;
+                    end else if (r1_pos == 8) begin
+                        $display("r1_response: %b", r1_response);
+                        r1_start <= '0;
+                        r1_response <= '0;
+                        r1_pos <= '0;
+                        state[RECEIVE_R1_STATE] <= '0;
+                    end
+                end
             end
         end else if (state[READ_STATE]) begin
         end else if (state[WRITE_STATE]) begin

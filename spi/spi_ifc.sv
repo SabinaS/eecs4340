@@ -14,7 +14,6 @@ interface spi_ifc #(
 
     wire  [BUS_WIDTH-1:0]   dat;
 
-
     // note that the outputs and inputs are reversed from the dut
     clocking cb @(posedge clk);
         output rst, from_slave_i, read_i, write_i, valid_i, ready_i;
@@ -29,4 +28,10 @@ interface spi_ifc #(
         output to_slave_o, ready_o, valid_o, ack_o,
         inout  dat
     );
+
+    // modport sdcard (
+    //     input to_slave_o,
+    //     output from_slave_i
+    // );
+
 endinterface

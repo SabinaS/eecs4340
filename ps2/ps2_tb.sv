@@ -25,7 +25,6 @@ program ps2_tb (ps2_ifc.bench ds);
 
 	integer i, seed;
 	logic [7:0] rand_num;
-	$display("ps2_tb before initial");
 	initial begin
 		t = new();
 		$display("ps2_tb after intial");

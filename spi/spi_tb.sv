@@ -67,31 +67,94 @@ parameter CLK_MHZ               = 50;
 parameter SCLK_WAIT             = 74;
 parameter MILLISECOND_MHZ       = (CLK_MHZ * 1000000) / 1000;
 parameter SPI_CYCLE_INIT        = (CLK_MHZ * 1000000) / 400000;
+
+parameter COMMAND_SIZE          = 6 * 8;
+parameter R1_SIZE               = 8;
+parameter R3_SIZE               = 8 * 5;
 program spi_tb (spi_ifc.bench ds);
 
     transaction t; 
     testing_env v;
 
-    bit mosi = ds.cb.to_slave_o[1];
-    
-    int failures = 0; 
+    int ss_divider = 0;
+    int ss_toggle_value = 100000000;
+    int last_ss_difference = 0;
+
+    assign mosi = ds.cb.to_slave_o[1];
+    assign sclk = ds.cb.to_slave_o[0];
+    assign sclk_posedge = (ss_divider == ss_toggle_value / 2 - 1) && !sclk;
+    assign ss = ds.cb.to_slave_o[2];
+
+    int failures = 0;
+    int command_count = 0;
+    bit first_command = 0;
+    bit first_command_recv = 0;
+    bit prev_mosi = 1;
+    bit prev_sclk = 1;
     bit reset;
-    
+
+    logic [COMMAND_SIZE-1:0] command = 0;
+    int command_pos = 0;
+    logic [R1_SIZE-1:0] r1_response;
+    int r1_pos = R1_SIZE - 1;
+    logic [R3_SIZE-1:0] r3_response;
+    int r3_pos = 0;
+
     initial begin
         t = new();
         v = new();
         // v.read_config("config.txt");
 
         ds.cb.rst <= 1'b1;
+        ds.cb.from_slave_i <= '1;
         @(ds.cb);
         ds.cb.rst <= 1'b0;
-        @(ds.cb);
 
         $display("tb: MILLISECOND_MHZ: %d, SCLK_WAIT: %d, CLK_MHZ: %d, SPI_CYCLE_INIT: %d", MILLISECOND_MHZ, SCLK_WAIT, CLK_MHZ, SPI_CYCLE_INIT);
         repeat (SCLK_WAIT * SPI_CYCLE_INIT * 2 + MILLISECOND_MHZ + 48 * SPI_CYCLE_INIT * 2 + SPI_CYCLE_INIT * 48 * 2) begin
             // if ($time == SCLK_WAIT * SPI_CYCLE_INIT * 2 + MILLISECOND_MHZ)
             //     $vcdpluson;
+            // mosi = ds.cb.to_slave_o[1];
+            if (sclk_posedge) begin
+                // CMD0, respond with R1
+                if (first_command && command_pos < 47) begin
+                    command = {command[COMMAND_SIZE-2:0], mosi};
+                    $display("tb: mosi @%d ns: %d",$time, mosi);
+                    command_pos++;
+                end else if (command_pos >= 47 && !first_command_recv) begin
+                    $display("command: %b", command);
+                    first_command_recv = 1;
+                    r1_response = 1;
+                    command_pos = 0;
+                    first_command = 0;
+                end else if (first_command_recv) begin
+                    if (r1_pos >= 0) begin
+                        $display("r1_response[%d] = %d",r1_pos, r1_response[r1_pos]);
+                        ds.cb.from_slave_i <= r1_response[r1_pos];
+                        r1_pos--;
+                    end
+                end
+            end
             @(ds.cb);
+            last_ss_difference++;
+            ss_divider++;
+            // Reset ss_divider
+            if (prev_sclk != sclk)
+                ss_divider = 1;
+            // Record the last spi clock period
+            if (!prev_sclk && sclk) begin
+                ss_toggle_value = last_ss_difference;
+                last_ss_difference = 0;
+            end
+            if (!prev_mosi && mosi) begin
+                if (command_count == 1) begin
+                    $display("Command received: %d", command_count);
+                    first_command = 1;
+                end
+                command_count++;
+            end
+            prev_mosi = mosi;
+            prev_sclk = sclk;
         end
 
         // Iterate iter number of cycles 

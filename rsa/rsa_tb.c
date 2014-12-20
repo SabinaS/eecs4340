@@ -20,6 +20,11 @@ void md5hash(char *src, svBitPackedArrRef res, int in_len) {
 	char *src_cpy = malloc(in_len);
 	
 	memcpy(src_cpy, src, in_len);
+	for (i = 0; i < in_len / 2; ++i) {
+		char tmp = src_cpy[i];
+		src_cpy[i] = src_cpy[in_len - 1 - i];
+		src_cpy[in_len - 1 - i] = tmp;
+	}
 
 	char *res_char = malloc(MD5_OUT_SIZE);
 	memset(res_char, 0, MD5_OUT_SIZE);

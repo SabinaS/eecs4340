@@ -26,6 +26,7 @@ program ps2_tb (ps2_ifc.bench ds);
 	logic [7:0] rand_num;
 	logic new_code;
 	logic valid; 
+	logic errors;
 
 	initial begin
 		t = new();
@@ -35,21 +36,28 @@ program ps2_tb (ps2_ifc.bench ds);
 		ds.cb.rst <= 1'b0;
 		@(ds.cb);
 		
-		seed = 1'b1; 
+		seed = 1'b1;  
+		errors = 0; 
 		/*rand_num = $random(seed) % 256;
                 ds.cb.ps2_data <= rand_num;*/
 
 		for(i=0; i< 100; i = i+1) begin
 			rand_num = $random(seed) % 256;
-			$display("rand_num %d", rand_num);
+			/*$display("rand_num %d", rand_num);*/
 			ds.cb.ps2_data <= rand_num;
 			ds.cb.ps2_clk <= 1; 	
 			new_code = ds.cb.ps2_code;
 			valid = ds.cb.valid;
-			$display("new_code: %d", new_code);
-			$display("valid: %d", valid);
+			if(valid == 0) begin
+				errors = errors + 1;
+			end
+				
+			/*$display("new_code: %d", new_code);*/
+			/*$display("valid: %d", valid);*/
 			#1ns;
 		end
+
+		$display("Errors: %d", errors);
 
 
 		/* write a series of hex to the keyboard module */

@@ -14,7 +14,7 @@ module modexp(
 	output logic done, valid;
 
 
-	logic [8191:0] intermediate;
+	logic [4095:0] intermediate;
 	integer i;
 	logic run;
 

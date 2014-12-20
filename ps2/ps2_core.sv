@@ -54,7 +54,6 @@ always_ff @(posedge clk) begin
 		/* ToDo */
 		ps2_code <= '0;
 		ps2_code_new <= '0;
-		valid <= '0;
 
 	end 
 
@@ -84,7 +83,7 @@ always_ff @(posedge clk) begin
     	if(count_idle == 16'hADA && error == '0) begin
     		ps2_code_new <= '1;
     		ps2_code <= ps2_word[8:1];
-    		valid = '1;
+    		valid <= '1;
     	end else begin
     		ps2_code_new <= '0; 
     	end

@@ -17,7 +17,7 @@ PRODUCT=$(PRODUCTBASE)
 PRODUCT_TIMESTAMP=product_timestamp
 
 # Path to runtime library
-RUNTIME=/sim/synopsys64/vcs/amd64/lib/libvcsnew.so /sim/synopsys64/vcs/amd64/lib/libuclinative.so 
+RUNTIME=/sim/synopsys64/vcs/amd64/lib/libvcsnew.so /sim/synopsys64/vcs/amd64/lib/libreader_common.so /sim/synopsys64/vcs/amd64/lib/libBA.a /sim/synopsys64/vcs/amd64/lib/libuclinative.so 
 
 VCS_SAVE_RESTORE_OBJ=/sim/synopsys64/vcs/amd64/lib/vcs_save_restore_new.o
 

@@ -19,7 +19,7 @@ help:
 	echo " help     - show this information";\
 
 ps2bench: 
-	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice $(PS2_TOP) $(PS2_BENCH) $(MODULES) -o $(PS2_OUTPUT) 
+	vcs -full64 -cm line+cond+tgl+fsm+branch+assert -PP -sverilog +define+SV +define+VPD -notice $(PS2_TOP) $(PS2_BENCH) $(MODULES) -o $(PS2_OUTPUT) 
 
 wave:
 	vcs -vpd2vcd vcdplus.vpd waveform.vcd

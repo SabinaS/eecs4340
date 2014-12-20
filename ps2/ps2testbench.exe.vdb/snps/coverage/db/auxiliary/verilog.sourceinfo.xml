@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE cov SYSTEM "ucdb_srcinfo.dtd">
+  <srcinfo name="/home/ss3912/Git/eecs4340/ps2"  >
+    <ucapi_version  major_ver="12"  minor_ver="1"  patch_str="F-2011.12"  />
+      <fileinfo name="ps2_top.sv"  id="0"  />
+      <fileinfo name="ps2_converter.sv"  id="2"  />
+      <fileinfo name="ps2_tb.sv"  id="1"  />
+      <fileinfo name="ps2_ifc.sv"  id="4"  />
+      <fileinfo name="debounce.sv"  id="3"  />
+      <fileinfo name="ps2_core.sv"  id="5"  />
+      <fileinfo name="ps2_port.sv"  id="6"  />
+    </srcinfo>

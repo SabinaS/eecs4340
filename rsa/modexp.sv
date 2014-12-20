@@ -18,15 +18,6 @@ module modexp(
 	integer i;
 	logic run;
 
-	/*  Input: M, e, n
-		Output: M^e mod n
-		Let e contain k bits
-		if e[k-1] = 1 then C = M else C = 1
-		for i=k-2 down to 0
-		C = C*C
-		If e_i = 1 then C = C*M
-	*/
-
 	always_ff @(posedge clk) begin
 		if(rst) begin
 			run<=1'b0;

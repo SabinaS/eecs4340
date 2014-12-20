@@ -13,13 +13,16 @@
 
 #define MD5_OUT_SIZE 16
 
-char *hash;
-
 void md5hash(char *src, svBitPackedArrRef res, int in_len) {
 	int i;
 	char *src_cpy = malloc(in_len);
 	
 	memcpy(src_cpy, src, in_len);
+	for (i = 0; i < in_len / 2; ++i) {
+		char tmp = src_cpy[i];
+		src_cpy[i] = src_cpy[in_len - 1 - i];
+		src_cpy[in_len - 1 - i] = tmp;
+	}
 
 	char *res_char = malloc(MD5_OUT_SIZE);
 	memset(res_char, 0, MD5_OUT_SIZE);
@@ -34,13 +37,6 @@ void md5hash(char *src, svBitPackedArrRef res, int in_len) {
 
 	EVP_MD_CTX_destroy(ctx);
 
-	for (i = 0; i < MD5_OUT_SIZE; ++i) {
-		printf("%02x ", ((char *)res_char)[i] & 0xff);
-	}
-
-	hash = malloc(MD5_OUT_SIZE);
-	memcpy(hash, res_char, MD5_OUT_SIZE);
-
 	/* byte ordering mess */
 	for (i = 0; i < MD5_OUT_SIZE / 2; ++i) {
 		char tmp = res_char[i];
@@ -49,17 +45,6 @@ void md5hash(char *src, svBitPackedArrRef res, int in_len) {
 	}
 
 	memcpy(res, res_char, MD5_OUT_SIZE);
-
-	printf("MD5::\n");
-	for (i = 0; i < in_len; ++i) {
-		printf("%02x ", ((char *)src)[i] & 0xff);
-	}
-	printf("\n");
-	for (i = 0; i < MD5_OUT_SIZE; ++i) {
-		printf("%02x ", ((char *)res)[i] & 0xff);
-	}
-	printf("\n");
-
 	free(res_char);
 }
 
@@ -70,8 +55,6 @@ void aes_encrypt(svBitPackedArrRef key, svBitPackedArrRef src,
 	memmove(key_char, key, in_len);
 	memmove(res_char, src, in_len);
 
-//	memmove(key_char, hash, in_len);
-	//memmove(res_char, hash, in_len);
 	int i;
 	for (i = 0; i < in_len / 2; ++i) {
 		char tmp = res_char[i];
@@ -87,12 +70,6 @@ void aes_encrypt(svBitPackedArrRef key, svBitPackedArrRef src,
 
 	/* in-place modification of res */
 	aes_encrypt_block(res_char, key_char);
-
-	printf("AES::\n");
-	for (i = 0; i < 16; ++i) {
-		printf("%02x ", res_char[i] & 0xff);
-	}
-	printf("\n");
 
 	for (i = 0; i < in_len / 2; ++i) {
 		char tmp = res_char[i];

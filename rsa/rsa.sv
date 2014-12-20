@@ -116,7 +116,6 @@ module rsa(
 			case(state)
 				3'b000: begin //get all RSA stuff
 					if(count==65) begin //(4096+4096+128)/128
-						$display("dut to state 1");
 						state <= 3'b001;
 						count <= 0;
 						rsa_ready_o<=1'b0;
@@ -131,7 +130,6 @@ module rsa(
 				3'b001: begin //buffer keyboard input 
 					if(count == 56|| (ps2_done && ps2_valid_i)) begin
 						//$display("DUT input buff %d", input_buff);
-						$display("dut to state 2");
 						state <= 3'b010;
 						count <= 0;
 						start_kb_decrypt <= 1'b1;
@@ -148,11 +146,9 @@ module rsa(
 				3'b010: begin //decrypt AES key from KB (validate input)
 					start_kb_decrypt <= 1'b0;
 					if(aes_kb_done && aes_kb_valid) begin
-						$display("dut to state 3");
 						led_pass_o <= 1'b1;
 						state <= 3'b011;
 					end else if(aes_kb_done && !aes_kb_valid) begin
-						$display("dut to state 2: AES KB failure");
 						//start_aes_decrypt <= 1'b1;
 						led_fail_o <=1'b1;
 						count <= 0;
@@ -164,7 +160,6 @@ module rsa(
 				3'b011: begin //decrypt 4096 RSA exp and 4096 RSA mod
 					//start_aes_decrypt <= 1'b0;
 					if(count == 101) begin //64-101 are good  TODO FIX
-						$display("dut to state 4");
 						state <= 3'b100;
 						count <= 0;
 						aes_ready_o <= 1'b1;
@@ -175,7 +170,6 @@ module rsa(
 
 				3'b100: begin //buffer encrypted AES keys
 					if(count == 32) begin //only takes 1 cycle now
-						$display("dut to state 5");
 						state <= 3'b101;
 						count <= 0;
 						aes_ready_o <= 1'b0; // one cycle too late??
@@ -191,7 +185,6 @@ module rsa(
 					start_rsa_decrypt <= 1'b0;
 					/* if AES done */
 					if(aes_done && aes_valid) begin//CHANGE to count from 48 to 
-						$display("dut to state 6");
 						state <= 3'b110;
 						count <= 0;
 					end 
@@ -200,7 +193,6 @@ module rsa(
 				3'b110: begin /* send to AES data module */
 					//if(count == 8) begin
 					if(out_ready_i) begin
-						$display("dut to state 7");
 						state <= 3'b111;
 						count <= 0;
 					end else begin 
@@ -212,7 +204,6 @@ module rsa(
 
 				3'b111: begin /* wait to go back to state 4 */
 					if(out_ready_i) begin /* ready for next block */
-						$display("dut to state 4--from final");
 						state <= 3'b100;
 						aes_ready_o <= 1'b1;
 					end
@@ -243,7 +234,6 @@ module rsa(
 					if(ps2_done && ps2_valid_i) begin
 						//TODO Padding 
 						//pad zeros up to 448
-						$display("kbd buffer: %s", kbd);
 						if(count<56) begin
 							case(count)
 								0: kbd <= 'b0;
@@ -309,7 +299,6 @@ module rsa(
 
 					end else if(ps2_valid_i&&!ps2_done&&!ps2_reset) begin //don't buffer the enter key
 						kbd[(8*count)+:8] <= ps2_data_i; 
-						$display("kbd buf inc %d:: %s", count, kbd);
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end

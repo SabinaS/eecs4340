@@ -14,7 +14,6 @@ import "DPI" function void printout_256(input bit[255:0] ptr);
 import "DPI" function void printout_384(input bit[383:0] ptr);
 
 class transaction;
-	// vars
 	rand bit reset;
 	rand bit[127:0] current_aes_key;
 	bit [4095:0] encrypted_aes_key;
@@ -22,7 +21,6 @@ class transaction;
 	function void generate_new_aes_key();
 		randomize();
 		rsa_encrypt(current_aes_key, encrypted_aes_key); /* uses statically stored key */
-		//printout_128(current_aes_key);
 	endfunction
 
 	// Checking the reset functionality
@@ -72,7 +70,7 @@ class testing_env;
 	bit [8191:0] rsa_info;
 	bit [8319:0] full_data;
 
-	bit [4095:0] modulus = '0; /* modulus */
+	bit [4095:0] modulus = '0;
 	bit [4095:0] private_key;
 
 	int data_selector = 0;
@@ -109,7 +107,7 @@ class testing_env;
 
 	function void setup_keys_passphrases();
 		int i;
-		//correct_passphrase = "";
+		correct_passphrase = "";
 
 		for (i = 56; i>=0; i=i-1) begin
 		    begin
@@ -120,9 +118,6 @@ class testing_env;
 		passphrase_length = $random % 56;
 		/* effectively end it early */
 		correct_passphrase[passphrase_length] = "\n";
-
-		correct_passphrase = "#yolt\n";
-		passphrase_length = 5;
 
 		if (get_correct_pp()) begin
 			use_passphrase = correct_passphrase;
@@ -148,18 +143,8 @@ class testing_env;
 		md5hash(correct_passphrase, passphrase_md5, passphrase_length);
 		key_aes_rsa = {passphrase_md5};
 		key_header_to_encrypt = {passphrase_md5};
-		$display("tb hash: %x",  key_aes_rsa);
 		aes_encrypt(key_aes_rsa, key_header_to_encrypt, encrypted_message, 16);
 		key_header = {encrypted_message};
-		$display("enc message: %x",  key_header);
-/*		printout_128(passphrase_md5);
-		printout_128(key_aes_rsa);
-		printout_128(key_header_to_encrypt);
-		printout_128(encrypted_message);
-		$display("passphrase_md5: %x", passphrase_md5);
-		$display("key_aes_rsa:    %x", key_aes_rsa);
-		$display("to_encrypt:     %x", key_header_to_encrypt);
-		$display("enc message:    %x", encrypted_message);*/
 	endfunction
 
 	function void generate_rsa_key();
@@ -174,7 +159,7 @@ class testing_env;
 		generate_rsa_key();
 		full_data = {key_header, rsa_info};
 		key_send_done = '0;
-		/* ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
+		/* BYTE ORDERING OF DATA MAY CAUSE PROBLEMS.  CHECK HERE DURING DEBUG */
 	endfunction
 
 	function bit get_reset();
@@ -225,7 +210,6 @@ program rsa_tb (rsa_ifc.bench ds);
 		repeat (v.iter) begin
 			v.randomize();
 			if(v.get_reset() || force_reset) begin
-				//force_reset <= 1'b0;
 				ds.cb.rst <= 1'b1;
 				$display("%t : %s \n", $realtime, "Driving Reset");
 			end else begin
@@ -249,14 +233,11 @@ program rsa_tb (rsa_ifc.bench ds);
 						if (!v.use_passphrase.substr(
 									v.keyboard_data_selector,
 									v.keyboard_data_selector).compare("\n")) begin
-						 $display("kb done asserted");
 							ds.cb.ps2_done <= 1'b1;
 							ds.cb.ps2_valid_i <= 1'b1;
 							ds.cb.ps2_reset <= 1'b0;
 							v.keyboard_done = 1;
-							//$display("TB full data:  %d", v.full_data);
 						end else begin
-						 $display("sent kb data %d", v.keyboard_data_selector);
 							ds.cb.ps2_data_i <=
 								v.use_passphrase.substr(
 									v.keyboard_data_selector,
@@ -275,7 +256,6 @@ program rsa_tb (rsa_ifc.bench ds);
 
 					/* send data if necessary */
 					if (ds.cb.rsa_ready_o && !v.key_send_done) begin
-						$display("sent rsa data %d", v.data_selector);
 						ds.cb.rsa_data_i <=
 							v.full_data[128*v.data_selector +: 128];
 						ds.cb.rsa_valid_i <= 1'b1;
@@ -290,9 +270,6 @@ program rsa_tb (rsa_ifc.bench ds);
 
 					/* handle aes */
 					if (ds.cb.aes_ready_o) begin
-						/* TODO how is data being spit out to AES?
-						   How does AES know what to decrypt? */
-						 $display("sent aes data %d", v.encrypted_aes_data_selector);
 						ds.cb.aes_data_i <=
 							t.encrypted_aes_key[128*v.encrypted_aes_data_selector +: 128];
 						ds.cb.aes_valid_i <= 1'b1;

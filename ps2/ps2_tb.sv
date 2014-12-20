@@ -28,9 +28,7 @@ program ps2_tb (ps2_ifc.bench ds);
 	logic valid; 
 
 	initial begin
-		$display("inital");
 		t = new();
-		$display("ps2_tb after intial");
 		
 		ds.cb.rst <= 1'b1;
 		@(ds.cb);

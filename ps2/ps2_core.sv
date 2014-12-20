@@ -33,6 +33,17 @@ logic [10:0] ps2_word;
 logic error;
 logic [15:0] count_idle;  					/* todo: check */
 
+always_ff @(posedge clk) begin
+	/* synchronize the flipflops */
+	if(clk) begin
+                sync_ffs[0] <= ps2_clk;
+                sync_ffs[1] <= ps2_data;
+        end
+end
+
+/* debounce PS2 input signals */
+
+
 /* instancing debounce */
 debounce debounce_ps2_clk(
 	.clk(clk),
@@ -48,7 +59,7 @@ debounce debounce_ps2_data(
 
 /* Behavior */
 always_ff @(posedge clk) begin
-
+	
 	/* Reset */
 	if (rst) begin
 		/* ToDo */
@@ -59,10 +70,6 @@ always_ff @(posedge clk) begin
 	end 
 
 	/* synchronize the flipflops */
-	if(clk) begin
-		sync_ffs[0] <= ps2_clk;
-		sync_ffs[1] <= ps2_data; 
-	end
 
 	/* input ps2 data */
 	if (ps2_clk_int == '0) begin
@@ -71,14 +78,17 @@ always_ff @(posedge clk) begin
 
 	/* verify that parity, start, and stop bits are all correct */
 	if( !(~ps2_word[0] && ps2_word[10] && (ps2_word[9] ^ ps2_word[8] ^ ps2_word[7] ^ ps2_word[6] ^ ps2_word[5] ^ ps2_word[4] ^ ps2_word[3] ^ ps2_word[2] ^ ps2_word[1])) ) begin
-        error = 1'h1; 
-    end
-
+        	error <= 1'h1; 
+    	end else begin
+		error <= 1'h0;
+	end
+	
     if (clk) begin
     	if(ps2_clk_int == '0) begin
     		count_idle <= '0;
     	end else if (count_idle  != 16'hADA) begin 		/* todo: check this */
-    		count_idle <= count_idle + 1'h1; 
+    		$display("count_idle not equal");
+		count_idle <= count_idle + 1'h1; 
     	end
 
     	if(count_idle == 16'hADA && error == '0) begin

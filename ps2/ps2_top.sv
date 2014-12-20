@@ -4,7 +4,7 @@ module ps2_top;
 
 	bit clk = 1;
 	always #10 clk = ~clk;
-
+	
 	initial $vcdpluson;
 
 	ps2_ifc IFC(clk);

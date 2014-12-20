@@ -1,9 +1,8 @@
 `timescale 1ns/1ns
 
 module ps2_converter(
-	clk, ps2_clk, rst, 
-	ps2_data, ascii_new, ascii_code,
-	ps2_code_new, ps2_code, valid
+	clk, ps2_clk, rst, ps2_data, 
+	ascii_new, ascii_code, valid
 );
 
 /* Inputs */
@@ -13,9 +12,7 @@ input ps2_data; 								/* data signal from PS2 keyboard */
 
 /* Outputs */
 output logic ascii_new;
-output logic ascii_code;
-output logic ps2_code_new;							/* flag that new PS/2 code is available on ps2_code bus */
-output logic [7:0] ps2_code; 							/* PS2 code input form ps2_keyboard component */
+output logic [6:0] ascii_code;
 output logic valid; 
 
 /* Variables */
@@ -33,6 +30,8 @@ logic control_l;								/* '1 if left control key is held down, else '0, init: 0
 logic shift_r;									/* '1 if right shift is held down, else '0, init: 9*/
 logic shift_l;									/* '1 if left shift is held down, else '0, init: 0*/
 logic [7:0] ascii; 								/* internal value of ASCII translation, init: 8'hFF */
+logic ps2_code_new;                                                      /* flag that new PS/2 code is available on ps2_code bus */
+logic [7:0] ps2_code;                                                    /* PS2 code input form ps2_keyboard component */
 
 /* States */
 logic ready;									/* state */
@@ -45,6 +44,7 @@ logic init;
 /* instance the ps2 keyboard module */
 ps2_core ps2_keyboard(
 	.clk(clk),
+	.rst(rst),
 	.ps2_clk(ps2_clk),
 	.ps2_data(ps2_data),
 	.ps2_code(ps2_code),
@@ -90,6 +90,7 @@ always_ff @(posedge clk) begin
 
 		/* ready state: wait for a new PS2 code to be received */
 		if(state == ready) begin
+			$display("state == ready: %d", ps2_code_new);
 			if(prev_ps2_code_new == '0 && ps2_code_new == 1'h1) begin
 				ascii_new <= '0;
 				state <= new_code; 
@@ -100,6 +101,7 @@ always_ff @(posedge clk) begin
 
 		/* new_code state: determine what to do with the new PS2 code */
 		if (state == new_code) begin
+			$display("state == new_code: %d", ps2_code);
 			if(ps2_code == 8'hF0) begin
 				break_var <= 1'h1;
 				state <= ready;
@@ -114,6 +116,7 @@ always_ff @(posedge clk) begin
 
 		/* translate state: translate PS2 code to ASCII value */
 		if (state == translate) begin
+			$display("state == translate: %d", ps2_code);
 			break_var <= '0;
 			e0_code <= '0;
 
@@ -315,10 +318,12 @@ always_ff @(posedge clk) begin
 		end
 
 		if (state == output_var) begin
+			$display("state == output: %d", ascii);
 			if(ascii[7] == '0) begin
 				ascii_new <= '1;
 				ascii_code <= ascii;				/* ToDo: should this be ascii_code <= ascii[6:0]?? */
 			end
+			$display("state==output: %d %d", ascii_new, ascii_code);
 			state <= ready; 						/* return to ready state to await next PS2 code*/ 
 		end
 	end

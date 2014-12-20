@@ -89,6 +89,8 @@ program spi_tb (spi_ifc.bench ds);
     int command_count = 0;
     bit first_command = 0;
     bit first_command_recv = 0;
+    bit second_command = 0;
+    bit second_command_recv = 0;
     bit prev_mosi = 1;
     bit prev_sclk = 1;
     bit reset;
@@ -99,6 +101,8 @@ program spi_tb (spi_ifc.bench ds);
     int r1_pos = R1_SIZE - 1;
     logic [R3_SIZE-1:0] r3_response;
     int r3_pos = 0;
+    logic [R3_SIZE-1:0] r7_response;
+    int r7_pos = R3_SIZE-1;
 
     initial begin
         t = new();
@@ -111,27 +115,51 @@ program spi_tb (spi_ifc.bench ds);
         ds.cb.rst <= 1'b0;
 
         $display("tb: MILLISECOND_MHZ: %d, SCLK_WAIT: %d, CLK_MHZ: %d, SPI_CYCLE_INIT: %d", MILLISECOND_MHZ, SCLK_WAIT, CLK_MHZ, SPI_CYCLE_INIT);
-        repeat (SCLK_WAIT * SPI_CYCLE_INIT * 2 + MILLISECOND_MHZ + 48 * SPI_CYCLE_INIT * 2 + SPI_CYCLE_INIT * 48 * 2) begin
+        repeat (SCLK_WAIT * SPI_CYCLE_INIT * 2 + MILLISECOND_MHZ + 48 * SPI_CYCLE_INIT * 2 + SPI_CYCLE_INIT * 2 * 8 + SPI_CYCLE_INIT * 48 * 2 + SPI_CYCLE_INIT * 40 * 3) begin
             // if ($time == SCLK_WAIT * SPI_CYCLE_INIT * 2 + MILLISECOND_MHZ)
             //     $vcdpluson;
             // mosi = ds.cb.to_slave_o[1];
             if (sclk_posedge) begin
                 // CMD0, respond with R1
-                if (first_command && command_pos < 47) begin
-                    command = {command[COMMAND_SIZE-2:0], mosi};
-                    $display("tb: mosi @%d ns: %d",$time, mosi);
-                    command_pos++;
-                end else if (command_pos >= 47 && !first_command_recv) begin
-                    $display("command: %b", command);
-                    first_command_recv = 1;
-                    r1_response = 1;
-                    command_pos = 0;
-                    first_command = 0;
-                end else if (first_command_recv) begin
-                    if (r1_pos >= 0) begin
-                        $display("r1_response[%d] = %d",r1_pos, r1_response[r1_pos]);
-                        ds.cb.from_slave_i <= r1_response[r1_pos];
-                        r1_pos--;
+                if (!second_command) begin
+                    if (first_command && command_pos < 47) begin
+                        command = {command[COMMAND_SIZE-2:0], mosi};
+                        $display("first_command: mosi @%d ns: %d",$time, mosi);
+                        command_pos++;
+                    end else if (command_pos >= 47 && !first_command_recv) begin
+                        $display("first_command: %b", command);
+                        first_command_recv = 1;
+                        r1_response = 1;
+                        command_pos = 0;
+                        first_command = 0;
+                    end else if (first_command_recv) begin
+                        if (r1_pos >= 0) begin
+                            $display("first_command: r1_response[%d] = %d",r1_pos, r1_response[r1_pos]);
+                            ds.cb.from_slave_i <= r1_response[r1_pos];
+                            r1_pos--;
+                        end else ds.cb.from_slave_i <= '1;
+                    end
+                end
+
+                // CMD8, respond with R7
+                if (first_command_recv) begin
+                    if (second_command && command_pos < 47) begin
+                        command = {command[COMMAND_SIZE-2:0], mosi};
+                        $display("second_command: mosi @%d ns: %d",$time, mosi);
+                        command_pos++;
+                    end else if (command_pos >= 47 && !second_command_recv) begin
+                        $display("second_command: %b", command);
+                        second_command_recv = 1;
+                        r7_response = 'h1AA;
+                        // r7_response[R3_SIZE-2] = 1;
+                        command_pos = 0;
+                        second_command = 0;
+                    end else if (second_command_recv) begin
+                        if (r7_pos >= 0) begin
+                            $display("second_command: r7_response[%d] = %d",r7_pos, r7_response[r7_pos]);
+                            ds.cb.from_slave_i <= r7_response[r7_pos];
+                            r7_pos--;
+                        end else ds.cb.from_slave_i <= '1;
                     end
                 end
             end
@@ -150,6 +178,11 @@ program spi_tb (spi_ifc.bench ds);
                 if (command_count == 1) begin
                     $display("Command received: %d", command_count);
                     first_command = 1;
+                end
+                if (command_count == 6) begin
+                    $display("Command received: %d", command_count);
+                    command = 0;
+                    second_command = 1;
                 end
                 command_count++;
             end

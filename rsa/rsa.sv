@@ -129,7 +129,8 @@ module rsa(
 				end
 
 				3'b001: begin //buffer keyboard input 
-					if(count == 56|| (ps2_done && !ps2_valid_i)) begin
+					if(count == 56|| (ps2_done && ps2_valid_i)) begin
+						//$display("DUT input buff %d", input_buff);
 						$display("dut to state 2");
 						state <= 3'b010;
 						count <= 0;
@@ -150,9 +151,11 @@ module rsa(
 						$display("dut to state 3");
 						led_pass_o <= 1'b1;
 						state <= 3'b011;
-						//start_aes_decrypt <= 1'b1;
 					end else if(aes_kb_done && !aes_kb_valid) begin
-						led_fail_o <=1'b0;
+						$display("dut to state 2: AES KB failure");
+						//start_aes_decrypt <= 1'b1;
+						led_fail_o <=1'b1;
+						count <= 0;
 						state <= 3'b001;
 						start_rsa_decrypt <= 1'b0;
 					end
@@ -235,11 +238,12 @@ module rsa(
 					end
 				end
 				
-				3'b001: begin //buffer keyboard input 
+				3'b001: begin //buffer keyboard input
 					/* keyboard input */
 					if(ps2_done && ps2_valid_i) begin
 						//TODO Padding 
 						//pad zeros up to 448
+						$display("kbd buffer: %s", kbd);
 						if(count<56) begin
 							case(count)
 								0: kbd <= 'b0;
@@ -305,6 +309,7 @@ module rsa(
 
 					end else if(ps2_valid_i&&!ps2_done&&!ps2_reset) begin //don't buffer the enter key
 						kbd[(8*count)+:8] <= ps2_data_i; 
+						$display("kbd buf inc %d:: %s", count, kbd);
 					end else if(ps2_valid_i && ps2_reset) begin
 						kbd <= 'b0; //reset buffer
 					end

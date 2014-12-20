@@ -9,9 +9,9 @@ module md5_padder_length(
     integer i;
 
     always_comb begin
-        for(i = 447; i>0; i=i-1) begin
-            if(in[i]) begin //at the largest 1
-                out = i;
+        for(i = 55; i>0; i=i-1) begin
+            if(in[i*8 +: 8]) begin //at the largest 1
+                out = (i+1) * 8;
                 break;
             end
         end

@@ -68,6 +68,9 @@ module rsa_directed_test();
     #1 clk = 0;
     end
 
+    aes_data_i = 0;
+    aes_valid_i = 1'b1;
+
     for(i=0;i<1000;i=i+1) begin 
     #1 clk = 1;
     #1 clk = 0;

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+openssl rand -hex 32 > deaddropdoc_aes.key
+
+openssl genrsa 4096 > journalistprivate_rsa.key
+
+openssl rsa -pubout -in journalistprivate_rsa.key > journalistpublic_rsa.key
+
+cat deaddropdoc_aes.key | openssl rsautl -encrypt  -pubin -inkey journalistpublic_rsa.key > deaddropdoc_aes_key.enc
+
+
+cat deaddropdoc_aes_key.enc | openssl rsautl -decrypt -inkey journalistprivate_rsa.key
+
+

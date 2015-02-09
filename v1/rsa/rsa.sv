@@ -152,7 +152,8 @@ module rsa(
 						//start_aes_decrypt <= 1'b1;
 						led_fail_o <=1'b1;
 						count <= 0;
-						state <= 3'b001;
+						//state <= 3'b001; 
+						state <= 3'b011; //REMOVE
 						start_rsa_decrypt <= 1'b0;
 					end
 				end
@@ -184,10 +185,12 @@ module rsa(
 				3'b101: begin /* decrypt AES key */
 					start_rsa_decrypt <= 1'b0;
 					/* if AES done */
-					if(aes_done && aes_valid) begin//CHANGE to count from 48 to 
+					if(count==32) begin //CHANGE to count from 48 to 
 						state <= 3'b110;
 						count <= 0;
-					end 
+					end else begin
+						count <= count + 1;
+					end
 				end
 
 				3'b110: begin /* send to AES data module */

@@ -1,483 +1,650 @@
 `timescale 1ns/1ns
+`include "directives.sv"
+
 module spi_driver (
-    clk, rst,
-    to_slave_o, dat, valid_o, ready_o, ack_o,
-    from_slave_i, read_i, write_i, valid_i, ready_i
+   clk, rst,
+   to_slave_o, dat, valid_o, ready_o, ack_o,
+   from_slave_i, read_i, write_i, valid_i, ready_i,
+   sclk_posedge_o, sclk_negedge_o
 );
 
 // The speed of clk.
-parameter CLK_MHZ               = 50;
+   parameter CLK_MHZ               = 50;
 // The width of the device communication with the FAT32 module
-parameter BUS_WIDTH             = 128;
+   parameter BUS_WIDTH             = 128;
 // The number of cycles to toggle SCLK for during initialization
-parameter SCLK_WAIT             = 74;
+   parameter SCLK_WAIT             = 74;
 
 // See spi_command.sv for definitions
-parameter COMMAND_SIZE          = 6 * 8;
+   parameter COMMAND_SIZE          = 6 * 8;
 
 // TIMEOUT after 10 ms
-parameter TIMEOUT               = (CLK_MHZ * 1000000) / 100;
+   parameter TIMEOUT               = (CLK_MHZ * 1000000) / 100;
 
 // The number of bits needed to represent SCLK_WAIT
-parameter SCLK_WAIT_WIDTH       = $clog2(SCLK_WAIT + 1);
+   parameter SCLK_WAIT_WIDTH       = $clog2(SCLK_WAIT + 1);
 // The number of cycles elapsed in CLK_MHZ to wait to toggle sclk during initialization
-parameter SPI_CYCLE_INIT        = (CLK_MHZ * 1000000) / 400000;
+   parameter SPI_CYCLE_INIT        = (CLK_MHZ * 1000000) / 400000;
 // The number of cycles to wait to toggle sclk in normal operation
-parameter SPI_CYCLE             = (CLK_MHZ * 1000000) / (25 * 1000000);
+   parameter SPI_CYCLE             = (CLK_MHZ * 1000000) / (25 * 1000000);
 // The number of bits needed to represent SPI_CYCLE_INIT
-parameter SPI_CYCLE_INIT_WIDTH  = $clog2(SPI_CYCLE_INIT);
+   parameter SPI_CYCLE_INIT_WIDTH  = $clog2(SPI_CYCLE_INIT);
 // The number of cycles to wait for a millisecond to elapse..
-parameter MILLISECOND_MHZ       = (CLK_MHZ * 1000000) / 1000;
+   parameter MILLISECOND_MHZ       = (CLK_MHZ * 1000000) / 1000;
 // The number of bytes needed to represent MILLISECOND_MHZ
-parameter MILLISECOND_MHZ_WIDTH = $clog2(MILLISECOND_MHZ + 1);
+   parameter MILLISECOND_MHZ_WIDTH = $clog2(MILLISECOND_MHZ + 1);
 // The number of bits needed to represent all positions in COMMAND_SIZE
-parameter COMMAND_SIZE_WIDTH = $clog2(COMMAND_SIZE);
-parameter TIMEOUT_WIDTH = $clog2(TIMEOUT + 1);
+   parameter COMMAND_SIZE_WIDTH = $clog2(COMMAND_SIZE);
+   parameter TIMEOUT_WIDTH = $clog2(TIMEOUT + 1);
 
-parameter R1_SIZE = 8;
-parameter R1_SIZE_WIDTH = $clog2(R1_SIZE + 1);
-parameter R3_SIZE = 8 * 5;
-parameter R3_SIZE_WIDTH = $clog2(R3_SIZE + 1);
+   parameter R1_SIZE = 8;
+   parameter R1_SIZE_WIDTH = $clog2(R1_SIZE + 1);
+   parameter R3_SIZE = 8 * 5;
+   parameter R3_SIZE_WIDTH = $clog2(R3_SIZE + 1);
 
 /* the clock and reset signals */
-input clk, rst;
+   input clk, rst;
 /* from_slave_i: the MISO of the SPI protocol */
 /* read_i: asserted for a single cycle the fs module to begin a read
-    operation. The first data token should be the address information */
+operation. The first data token should be the address information */
 /* write_i: asserted for a single cycle (or more, but doesn't matter) by the fs
-    module to begin a write operation. The first data token should be the
-    address information. */
+module to begin a write operation. The first data token should be the
+address information. */
 /* valid_i: asserted by the fs module that the data on dat is valid */
 /* ready_i: asserted by the fs module if it is able to receive more data */
-input from_slave_i, read_i, write_i, valid_i, ready_i;
+   input from_slave_i, read_i, write_i, valid_i, ready_i;
 // The wires connecting to the SPI slave of this master
-output [2:0] to_slave_o;
+   output [2:0] to_slave_o;
 /* ready_o: indicates to the fs module that this module is ready to receive a
-    command */
+command */
 /* valid_o: indicates to the fs module that this module's data output is valid.
-    */
+*/
 /* ack_o: acknowledges that a command has been received. Will be sent on the
-    cycle following the first valid data input, and if not, the command was
-    missed */
-output logic ready_o, valid_o, ack_o;
+cycle following the first valid data input, and if not, the command was
+missed */
+   output logic ready_o, valid_o, ack_o;
+   output   sclk_negedge_o, sclk_posedge_o;
 /* The data bus for communicating with the FS module */
-inout [BUS_WIDTH-1:0] dat;
+   inout [BUS_WIDTH-1:0] dat;
 
 // For controlling the value driving on dat
-logic [BUS_WIDTH-1:0] dat_buf;
-logic dat_enable;
+   logic [BUS_WIDTH-1:0] dat_buf;
+   logic        dat_enable;
 
 // Some renaming for easier coding
-logic sclk, mosi, ss;
-wire miso, sclk_posedge;
+   logic        sclk, mosi, ss;
+   wire      miso, sclk_posedge, sclk_negedge;
 
 // CRC. The modules get unfiltered access to the CRC modules, as they do buses, but this should also be fine as no two modules should be actively using a crc block.
-logic crc7_valid, crc7_dat, crc7_rst;
-logic crc16_valid, crc16_dat, crc16_rst;
-wire [6:0] crc7_i;
-wire [15:0] crc16_i;
+   logic        crc7_valid, crc7_dat, crc7_rst;
+   logic        crc16_valid, crc16_dat, crc16_rst;
+   wire [6:0]      crc7_i;
+   wire [15:0]        crc16_i;
 
-crc_7 crc7   (.valid_i(crc7_valid),
-              .dat_i(crc7_dat),
-              .crc_o(crc7_i),
-              .rst(crc7_rst),
-              .*);
-crc_16 crc16 (.valid_i(crc16_valid),
-              .dat_i(crc16_dat),
-              .crc_o(crc16_i),
-              .rst(crc16_rst),
-              .*);
+   crc_7 crc7   (.valid_i(crc7_valid),
+      .dat_i(crc7_dat),
+      .crc_o(crc7_i),
+      .rst(crc7_rst),
+      .*);
+   crc_16 crc16 (.valid_i(crc16_valid),
+      .dat_i(crc16_dat),
+      .crc_o(crc16_i),
+      .rst(crc16_rst),
+      .*);
 
 // The read and write submodules are given unfiltered access to the data bus to avoid sharing logic, seeing as the driver is the one that ultimately initiates the module.
-wire [BUS_WIDTH-1:0] read_bus, write_bus;
-wire read_done, write_done;
-logic do_read, do_write;
+   wire [BUS_WIDTH-1:0]  read_bus, write_bus;
+   wire      read_done, write_done;
+   logic        do_read, do_write;
 
-wire read_crc7_valid, read_crc7_dat, read_crc7_rst;
-wire read_crc16_valid, read_crc16_dat, read_crc16_rst;
+   wire      read_crc7_valid, read_crc7_dat, read_crc7_rst;
+   wire      read_crc16_valid, read_crc16_dat, read_crc16_rst;
 
-wire write_crc7_valid, write_crc7_dat, write_crc7_rst;
-wire write_crc16_valid, write_crc16_dat, write_crc16_rst;
+   wire      write_crc7_valid, write_crc7_dat, write_crc7_rst;
+   wire      write_crc16_valid, write_crc16_dat, write_crc16_rst;
 
-wire read_mosi, write_mosi;
+   wire      read_mosi, write_mosi;
 
-spi_read #(BUS_WIDTH) reader  (.mosi(read_mosi),
-                               .bus_io(read_bus),
-                               .read_done_o(read_done),
-                               .read_i(do_read),
-                               .crc7_valid_o(read_crc7_valid),
-                               .crc7_dat_o(read_crc7_dat),
-                               .crc7_rst_o(read_crc7_rst),
-                               .crc16_valid_o(read_crc16_valid),
-                               .crc16_dat_o(read_crc16_dat),
-                               .crc16_rst_o(read_crc16_rst),
-                               .*);
-spi_write #(BUS_WIDTH) writer (.mosi(write_mosi),
-                               .bus_io(write_bus),
-                               .write_done_o(write_done),
-                               .write_i(do_write),
-                               .crc7_valid_o(write_crc7_valid),
-                               .crc7_dat_o(write_crc7_dat),
-                               .crc7_rst_o(write_crc7_rst),
-                               .crc16_valid_o(write_crc16_valid),
-                               .crc16_dat_o(write_crc16_dat),
-                               .crc16_rst_o(write_crc16_rst),
-                               .*);
+   spi_read #(BUS_WIDTH) reader  (.mosi(read_mosi),
+      .bus_io(read_bus),
+      .read_done_o(read_done),
+      .read_i(do_read),
+      .crc7_valid_o(read_crc7_valid),
+      .crc7_dat_o(read_crc7_dat),
+      .crc7_rst_o(read_crc7_rst),
+      .crc16_valid_o(read_crc16_valid),
+      .crc16_dat_o(read_crc16_dat),
+      .crc16_rst_o(read_crc16_rst),
+      .*);
+   spi_write #(BUS_WIDTH) writer (.mosi(write_mosi),
+      .bus_io(write_bus),
+      .write_done_o(write_done),
+      .write_i(do_write),
+      .crc7_valid_o(write_crc7_valid),
+      .crc7_dat_o(write_crc7_dat),
+      .crc7_rst_o(write_crc7_rst),
+      .crc16_valid_o(write_crc16_valid),
+      .crc16_dat_o(write_crc16_dat),
+      .crc16_rst_o(write_crc16_rst),
+      .*);
 
 // A register used to count up to 74 SPI cycles.
-logic [SCLK_WAIT_WIDTH-1:0] spi_counter;
-// For configuring the clock speed of the module. Since the lowest speed is SPI_CYCLE_INIT, we will need at most those bits to count and wait to toggle sclk. ss_toggle_value serves the purpose of dynamically setting the speed of sclk. Supports setting 
-logic [SPI_CYCLE_INIT_WIDTH-1:0] ss_divider, ss_toggle_value;
-// A register used to count up to the number of cycles needed to elapse for a a full millisecond at our clock speed.
-logic [MILLISECOND_MHZ_WIDTH-1:0] ms_waiter;
+   logic [SCLK_WAIT_WIDTH-1:0] spi_counter;
+// For configuring the clock speed of the module. Since the lowest speed is SPI_CYCLE_INIT, we will need at most those bits to count and wait to toggle sclk. ss_toggle_value serves the purpose of dynamically setting the speed of sclk. Supports setting the value to toggle at dynamically
+   logic [SPI_CYCLE_INIT_WIDTH-1:0] ss_divider, ss_toggle_value;
+// A register used to count up to the number of cycles needed to elapse for a a full millisecond at our base clock speed.
+   logic [MILLISECOND_MHZ_WIDTH-1:0] ms_waiter;
 
 // The register to hold the command for shifting it out
-logic [COMMAND_SIZE-1:0] command;
-logic [COMMAND_SIZE_WIDTH-1:0] command_pos;
-logic command_sent;
-logic command_done;
+   logic [COMMAND_SIZE-1:0]        command;
+   logic [COMMAND_SIZE_WIDTH-1:0]    command_pos;
+   logic               crc7_active;
+   logic               command_sent;
 
 // For shifting in responses
-logic [R1_SIZE-1:0] r1_response;
-logic [R1_SIZE_WIDTH-1:0] r1_pos;
-logic r1_start;
-logic [R3_SIZE-1:0] r3_response;
-logic [R3_SIZE_WIDTH-1:0] r3_pos;
-logic r3_start;
-logic [R3_SIZE-1:0] r7_response;
-logic [R3_SIZE_WIDTH-1:0] r7_pos;
-logic r7_start;
-logic r7_err;
-logic r7_done;
+   parameter R1_RESPONSE_SLOT = 0;
+   parameter R37_RESPONSE_SLOT = 1;
+   logic [R1_SIZE-1:0]          r1_response;
+   logic [R3_SIZE-1:0]          r37_response;
+   logic [R1_SIZE_WIDTH-1:0]       r1_pos;
+   logic [R3_SIZE_WIDTH-1:0]       r37_pos;
+   logic [1:0]               response_received;
+   logic               response_initiated;
+   logic               r7_crc_err;
+   logic               await_response;
+   logic               rsp_err;
 
-logic [TIMEOUT_WIDTH-1:0] timeout_counter;
-logic timeout;
-logic cmd8_timed_out;
+   logic [TIMEOUT_WIDTH-1:0]       timeout_counter;
+   logic               timeout;
 
 // STATES. The different "states" represented by this device, though more similar to mode of operation. Multiple states can be active at the same time, most commonly, SCLK_ACTIVE_STATE and READ_STATE/WRITE_STATE. Due to this, enums don't suite our purpose
-parameter STATES = 17;
+   parameter STATES = 18;
 // The main states of SPI. A 1 means the state is currently active. At most one of these should be high at any time.
-parameter INIT_STATE = 0;
-parameter IDLE_STATE = 1;
-parameter READ_STATE = 2;
-parameter WRITE_STATE = 3;
+   parameter INIT_STATE = 0;
+   parameter IDLE_STATE = 1;
+   parameter READ_STATE = 2;
+   parameter WRITE_STATE = 3;
 // The SPI clock is active if this state is high
-parameter SCLK_ACTIVE_STATE = 4;
+   parameter SCLK_ACTIVE_STATE = 4;
 // A value of 1 in this state means 74 SPI cycles have elapsed
-parameter SCLK_WAIT_STATE = 5;
-parameter MILLISECOND_WAIT_STATE = 6;
-parameter DO_COMMAND = 7;
+   parameter SCLK_WAIT_STATE = 5;
+   parameter MILLISECOND_WAIT_STATE = 6;
+   parameter DO_COMMAND = 7;
 // Response processing
-parameter RECEIVE_R1_STATE = 8;
-parameter RECEIVE_R3_STATE = 9;
-parameter RECEIVE_R7_STATE = 10;
+   parameter RECEIVE_R1_STATE = 8;
+   parameter RECEIVE_R3_STATE = 9;
+   parameter RECEIVE_R7_STATE = 10;
 // The command flow of SPI initialization
-parameter INIT_CMD0_STATE = 11;
-parameter INIT_CMD8_STATE = 12;
-parameter INIT_ACMD41_STATE = 13;
-parameter INIT_CMD58_STATE = 14;
-parameter INIT_CMD1_STATE = 15;
-parameter INIT_CMD16_STATE = 16;
+   parameter INIT_CMD0_STATE = 11;
+   parameter INIT_CMD8_STATE = 12;
+   parameter INIT_ACMD41_STATE = 13;
+   parameter INIT_CMD58_STATE = 14;
+   parameter INIT_CMD1_STATE = 15;
+   parameter INIT_CMD16_STATE = 16;
+   parameter INIT_CMD8_TIMED_OUT = 17;
 // The state register. Used to condence the numerous 1 bit logic check registers. Take a look at the variables ending with _STATE to see what the different positions correspond to.
-logic [STATES-1:0] state;
-// For states to know where they are in a session
-logic state_sent_command, state_initiated_response, state_processing;
+   logic [STATES-1:0]           state;
+// Used by states to identify logical position
+   logic               right_acmd41;
 
 // Assignmens
-assign miso = from_slave_i;
-assign to_slave_o[0] = sclk;
-assign to_slave_o[1] = mosi;
-assign to_slave_o[2] = ss;
+   assign miso = from_slave_i;
+   assign to_slave_o[0] = sclk;
+   assign to_slave_o[1] = mosi;
+   assign to_slave_o[2] = ss;
 // It's time to toggle the value of sclk, and sclk was previously low
-assign sclk_posedge = (ss_divider == ss_toggle_value - 1) && !sclk;
-assign dat = dat_enable ? dat_buf : 'z;
+   assign sclk_posedge = (ss_divider == ss_toggle_value - 1) && !sclk;
+   assign sclk_negedge = (ss_divider == ss_toggle_value - 1) && sclk;
+   assign sclk_posedge_o = sclk_posedge;
+   assign sclk_negedge_o = sclk_negedge;
+   assign dat = dat_enable ? dat_buf : 'z;
 
-// The behavior
-always_ff @(posedge clk) begin
-    // init is asserted on reset
-    if (rst) begin
-        // Output initialization
-        valid_o <= '0;
-        ready_o <= '0;
-        ack_o <= '0;
-        // Dat initialization
-        dat_enable <= '0;
-        dat_buf <= '0;
+   always_ff @(posedge clk) begin
+             // init is asserted on reset
+      if (rst) begin
+                // Output initialization
+         valid_o <= '0;
+         ready_o <= '0;
+         ack_o <= '0;
+                // Dat initialization
+         dat_enable <= '0;
+         dat_buf <= '0;
 
-        // State initialization
-        state[INIT_STATE] <= 1'b1;
-        state[IDLE_STATE] <= 1'b0;
-        state[READ_STATE] <= 1'b0;
-        state[WRITE_STATE] <= 1'b0;
-        state[SCLK_ACTIVE_STATE] <= 1'b0;
-        state[SCLK_WAIT_STATE] <= 1'b0;
-        state[MILLISECOND_WAIT_STATE] <= 1'b1;
-        state[DO_COMMAND] <= 1'b0;
-        state[RECEIVE_R1_STATE] <= 1'b0;
-        state[RECEIVE_R3_STATE] <= 1'b0;
-        state[RECEIVE_R7_STATE] <= 1'b0;
-        state[INIT_CMD0_STATE] <= 1'b0;
-        state[INIT_CMD8_STATE] <= 1'b0;
-        state[INIT_ACMD41_STATE] <= 1'b0;
-        state[INIT_CMD58_STATE] <= 1'b0;
-        state[INIT_CMD1_STATE] <= 1'b0;
-        state[INIT_CMD16_STATE] <= 1'b0;
+                // State initialization
+         state[INIT_STATE] <= 1'b1;
+         state[IDLE_STATE] <= 1'b0;
+         state[READ_STATE] <= 1'b0;
+         state[WRITE_STATE] <= 1'b0;
+         state[SCLK_ACTIVE_STATE] <= 1'b0;
+         state[SCLK_WAIT_STATE] <= 1'b0;
+         state[MILLISECOND_WAIT_STATE] <= 1'b1;
+         state[DO_COMMAND] <= 1'b0;
+         state[RECEIVE_R1_STATE] <= 1'b0;
+         state[RECEIVE_R3_STATE] <= 1'b0;
+         state[RECEIVE_R7_STATE] <= 1'b0;
+         state[INIT_CMD0_STATE] <= 1'b0;
+         state[INIT_CMD8_STATE] <= 1'b0;
+         state[INIT_ACMD41_STATE] <= 1'b0;
+         state[INIT_CMD58_STATE] <= 1'b0;
+         state[INIT_CMD1_STATE] <= 1'b0;
+         state[INIT_CMD16_STATE] <= 1'b0;
+         state[INIT_CMD8_TIMED_OUT] <= 1'b0;
+         command_sent <= 1'b0;
+         await_response <= 1'b0;
+         right_acmd41 <= 1'b0;
 
-        // sclk values
-        sclk <= '1;
-        ss_divider <= '0;
-        ss_toggle_value <= SPI_CYCLE_INIT;
-        spi_counter <= '0;
+                // sclk values
+         sclk <= '1;
+         ss_divider <= '0;
+         ss_toggle_value <= SPI_CYCLE_INIT;
+         spi_counter <= '0;
 
-        // Other initial states
-        mosi <= '0;
-        ss <= '0;
-        ms_waiter <= '0;
-        do_read <= '0;
-        do_write <= '0;
+                // Other initial states
+         mosi <= '1;
+         ss <= '1;
+         ms_waiter <= '0;
+         do_read <= '0;
+         do_write <= '0;
 
-        command <= '0;
-        command_pos <= COMMAND_SIZE-1;
-        command_sent <= '0;
-        command_done <= '0;
+         command <= '0;
+         command_pos <= COMMAND_SIZE-1;
+         crc7_active <= '0;
 
-        crc7_valid <= '0;
-        crc7_dat <= '0;
-        crc7_rst <= '1;
-        crc16_valid <= '0;
-        crc16_dat <= '0;
-        crc16_rst <= '1;
+         crc7_valid <= '0;
+         crc7_dat <= '0;
+         crc7_rst <= '1;
+         crc16_valid <= '0;
+         crc16_dat <= '0;
+         crc16_rst <= '1;
 
-        r1_response <= '0;
-        r1_pos <= '0;
-        r1_start <= '0;
-        r3_response <= '0;
-        r3_pos <= '0;
-        r3_start <= '0;
-        r7_response <= '0;
-        r7_pos <= '0;
-        r7_start <= '0;
-        r7_err <= '0;
-        r7_done <= '0;
+         r1_response <= '0;
+         r1_pos <= '0;
+         r37_response <= '0;
+         r37_pos <= '0;
+         r7_crc_err <= '0;
+         response_received <= '0;
+         response_initiated <= '0;
 
-        timeout <= '0;
-        timeout_counter <= '0;
-        cmd8_timed_out <= '0;
+         timeout <= '0;
+         timeout_counter <= '0;
 
-        state_sent_command <= '0;
-        state_processing <= '0;
-        state_initiated_response <= '0;
-        $display("Resetting");
-        $display("MILLISECOND_MHZ: %d, MILLISECOND_MHZ_WIDTH: %d", MILLISECOND_MHZ, MILLISECOND_MHZ_WIDTH);
-    // Reset takes precedence. remainder of the behavior
-    end else begin
-        // Toggle sclk
-        if (state[SCLK_ACTIVE_STATE]) begin
-            // Time to toggle
+         `display(("RST: Resetting"));
+         `display(("RST: MILLISECOND_MHZ: %0d, MILLISECOND_MHZ_WIDTH: %0d", MILLISECOND_MHZ, MILLISECOND_MHZ_WIDTH));
+
+                // Reset takes precedence. remainder of the behavior
+      end
+      else begin
+                // Toggle sclk
+         if (state[SCLK_ACTIVE_STATE]) begin
+                   // Time to toggle
             ss_divider <= ss_divider == ss_toggle_value - 1 ? '0 : ss_divider + 1'b1;
             sclk <= ss_divider == ss_toggle_value - 1 ? ~sclk : sclk;
-        end
-        // Send out a command
-        // DO_COMMAND has a latency of 1
-        if (state[RECEIVE_R1_STATE]) begin
+         end
+
+         // Receiving responses
+         if (state[RECEIVE_R1_STATE] || state[RECEIVE_R3_STATE] || state[RECEIVE_R7_STATE]) begin
             // If we haven't started initiate the timeout
-            if (!r1_start && timeout_counter < TIMEOUT)
-                timeout_counter <= timeout_counter + 1'b1;
+            if (timeout_counter < TIMEOUT) begin
+               timeout_counter <= timeout_counter + 1'b1;
+               crc7_rst <= '0;
+            end
             // A timeout occured
-            if (!r1_start && timeout_counter == TIMEOUT) begin
-                timeout_counter <= '0;
-                timeout <= '1;
-                state[RECEIVE_R1_STATE] <= '0;
+            if (timeout_counter == TIMEOUT) begin
+               `display(("RECEIVE_R#_STATE: timeout occured. R1: %b, R2: %b, R3: %b", state[RECEIVE_R1_STATE], state[RECEIVE_R3_STATE], state[RECEIVE_R7_STATE]));
+               timeout <= '1;
+               // Reset receive state
+               state[RECEIVE_R1_STATE] <= '0;
+               state[RECEIVE_R3_STATE] <= '0;
+               state[RECEIVE_R7_STATE] <= '0;
+               timeout_counter <= '0;
+               response_initiated <= '0;
+               r1_pos <= '0;
+               r37_pos <= '0;
+               crc7_rst <= '1;
             end
+
             if (sclk_posedge) begin
-                if (!miso && !r1_start) begin
-                    r1_start <= '1;
-                    r1_response <= {r1_response[R1_SIZE-2:0], miso};
-                    r1_pos <= r1_pos + 1'b1;
-                end else if (r1_start && r1_pos < R1_SIZE) begin
-                    r1_response <= {r1_response[R1_SIZE-2:0], miso};
-                    r1_pos <= r1_pos + 1'b1;
-                end else if (r1_pos == 8) begin
-                    $display("RECEIVE_R1_STATE: r1_response: %b", r1_response);
-                    r1_start <= '0;
-                    r1_pos <= '0;
-                    state[RECEIVE_R1_STATE] <= '0;
-                end
+               // We're still waiting for a response to be initiated
+               if (!response_initiated && !miso) begin
+                  r7_crc_err <= '0;
+                  rsp_err <= '0;
+                  response_initiated <= '1;
+                  if (state[RECEIVE_R1_STATE]) begin
+                     `display(("RECEIVE_R#_STATE: r1 response initiated"));
+                     r1_response <= {r1_response[R1_SIZE-2:0], miso};
+                     r1_pos <= r1_pos + 1'b1;
+                  end
+                  else if (state[RECEIVE_R3_STATE] || state[RECEIVE_R7_STATE]) begin
+                     `display(("RECEIVE_R#_STATE: r3/7 response initiated"));
+                     r37_response <= {r37_response[R3_SIZE-2:0], miso};
+                     r37_pos <= r37_pos + 1'b1;
+                  end
+                  // Reset the timeout
+                  timeout_counter <= '0;
+               end
+               // Shift in the response
+               else if (response_initiated) begin
+                  if (state[RECEIVE_R1_STATE] && r1_pos <= R1_SIZE) begin
+                     // `display(("RECEIVE_R#_STATE: r1 pos: %0d", r1_pos));
+                     r1_response <= {r1_response[R1_SIZE-2:0], miso};
+                     r1_pos <= r1_pos + 1'b1;
+                  end
+                  else if ((state[RECEIVE_R3_STATE] || state[RECEIVE_R7_STATE]) && r37_pos <= R3_SIZE) begin
+                     // `display(("RECEIVE_R#_STATE: r3/7 pos: %0d", r37_pos));
+                     r37_response <= {r37_response[R3_SIZE-2:0], miso};
+                     r37_pos <= r37_pos + 1'b1;
+                     if (r37_pos < R3_SIZE-8) begin
+                        // `display(("Adding to crc"));
+                        crc7_dat <= miso;
+                        crc7_valid <= '1;
+                     end
+                     else
+                        crc7_valid <= '0;
+                  end
+               end
             end
-        end else if (state[RECEIVE_R7_STATE]) begin
-            // If we haven't started initiate the timeout
-            if (!r7_start && timeout_counter < TIMEOUT)
-                timeout_counter <= timeout_counter + 1'b1;
-            // A timeout occured
-            if (!r7_start && timeout_counter == TIMEOUT) begin
-                timeout_counter <= '0;
-                timeout <= '1;
-                state[RECEIVE_R7_STATE] <= '0;
+            else
+               crc7_valid <= '0;
+            // We just received the last bit
+            if (sclk_negedge && (r1_pos == R1_SIZE || r37_pos == R3_SIZE)) begin
+               if (state[RECEIVE_R1_STATE]) begin
+                  `display(("RECEIVE_R#_STATE: r1_response: %b", r1_response));
+                  response_received[R1_RESPONSE_SLOT] <= '1;
+                  if (r1_response[R1_SIZE-1:R1_SIZE-8] != '0) begin
+                     `display(("RECEIVE_R#_STATE: response error"));
+                     rsp_err <= '1;
+                  end
+               end
+               else if (state[RECEIVE_R3_STATE] || state[RECEIVE_R7_STATE]) begin
+                  `display(("RECEIVE_R#_STATE: r3/7_response: %b", r37_response));
+                  response_received[R37_RESPONSE_SLOT] <= '1;
+                  // Check the crc
+                  if (state[RECEIVE_R7_STATE]) begin
+                     `display(("RECEIVE_R#_STATE: response r7 CRC7: %b, calculated r7 CRC7: %b", r37_response[7:1], crc7_i));
+                     r7_crc_err = crc7_i == r37_response[7:1] ? '0 : '1;
+                  end
+                  if (r37_response[R3_SIZE-1:R3_SIZE-8] != '0) begin
+                     `display(("RECEIVE_R#_STATE: response error"));
+                     rsp_err <= '1;
+                  end
+               end
+               // Reset receive state
+               state[RECEIVE_R1_STATE] <= '0;
+               state[RECEIVE_R3_STATE] <= '0;
+               state[RECEIVE_R7_STATE] <= '0;
+               timeout_counter <= '0;
+               response_initiated <= '0;
+               r1_pos <= '0;
+               r37_pos <= '0;
+               crc7_rst <= '1;
             end
-            if (sclk_posedge) begin
-                if (!miso && !r7_start) begin
-                    r7_start <= '1;
-                    r7_response <= {r7_response[R3_SIZE-2:0], miso};
-                    r7_pos <= r7_pos + 1'b1;
-                end else if (r7_start && r7_pos < R3_SIZE) begin
-                    r7_response <= {r7_response[R3_SIZE-2:0], miso};
-                    r7_pos <= r7_pos + 1'b1;
-                end else if (r7_pos == R3_SIZE) begin
-                    $display("RECEIVE_R7_STATE: r7_response: %b @%d ns", r7_response, $time);
-                    r7_start <= '0;
-                    r7_pos <= '0;
-                    r7_done <= '1;
-                    state[RECEIVE_R7_STATE] <= '0;
-                    // Check for error
-                    if (r7_response[R3_SIZE-1:R3_SIZE-8] != 0)
-                        r7_err <= '1;
-                end
+         end
+         // Sending commands (the command is assumed to be ready to be sent if this state is activated)
+         else if (state[DO_COMMAND]) begin
+            // if (sclk_posedge) `display(("command: %b, mosi: %0d, command << 1: %b, crc7_i: %b, command_pos: %0d", command, mosi, command << 1, crc7_i, command_pos));
+            // if (sclk_posedge) `display(("dut: mosi @%0d ns: %0d",$time, mosi));
+            // Activate the crc
+            if (!crc7_active) begin
+               crc7_active <= '1;
+               crc7_rst <= '0;
             end
-        end else if (state[DO_COMMAND]) begin
-            // if (sclk_posedge) $display("command: %b, mosi: %d, command << 1: %b, crc7_i: %b, command_pos: %d", command, mosi, command << 1, crc7_i, command_pos);
-            // Shift out the bits
-            // if (sclk_posedge) $display("dut: mosi @%d ns: %d",$time, mosi);
-            if (!command_sent) begin
-                crc7_rst <= '0;
-                if (command_pos == 0) command_sent <= '1;
-                command <= sclk_posedge ? command << 1 : command;
-                command_pos <= sclk_posedge ? command_pos - 1'b1 : command_pos;
-                crc7_dat <= command[COMMAND_SIZE-1];
-                crc7_valid <= sclk_posedge && command_pos > 7 && command_pos < 47 ? '1 : '0;
-                if (command_pos <= 7 && command_pos >= 1 && sclk_posedge) begin
-                    if (command_pos == 7)
-                        $display("DO_COMMAND: crc7 = [%b]", crc7_i);
-                    mosi <= crc7_i[command_pos - 1];
-                end else if (sclk_posedge)
-                    mosi <= command[COMMAND_SIZE-1];
-            end else begin
-                // End the command session
-                if (sclk_posedge) begin
-                    crc7_rst <= '1;
-                    mosi <= '1;
-                    command_done <= '1;
-                    command_sent <= '0;
-                    command <= '0;
-                    command_pos <= COMMAND_SIZE-1;
-                    state[DO_COMMAND] <= '0;
-                    $display("DO_COMMAND: COMMAND DONE @%d ns", $time);
-                end
+            else if (sclk_posedge) begin
+               if (command_pos == COMMAND_SIZE-1)
+                  `display(("DO_COMMAND: sending command: %b", command));
+               crc7_dat <= command[COMMAND_SIZE-1];
+               crc7_valid <= command_pos > 7 ? '1 : '0;
+               // We haven't shifted out all bits
+               if (command_pos > 0) begin
+                  command <= command << 1;
+                  command_pos <= command_pos - 1'b1;
+               end
+
+               // Send the CRC
+               if (command_pos <= 7 && command_pos >= 1) begin
+                  if (command_pos == 7)
+                     `display(("DO_COMMAND: crc7 = [%b]", crc7_i));
+                  mosi <= crc7_i[command_pos - 1];
+               end
+               // Or the command otherwise
+               else if (command_pos > 0)
+                  mosi <= command[COMMAND_SIZE-1];
+               // Or stop the transmission
+               else if (command_pos == '0) begin
+                  crc7_rst <= '1;
+                  crc7_active <= '0;
+                  crc7_valid <= '0;
+                  command <= '0;
+                  command_pos <= COMMAND_SIZE-1;
+                  state[DO_COMMAND] <= '0;
+                  mosi <= '1;
+                  `display(("DO_COMMAND: COMMAND SENT"));
+               end
             end
-        end
+            else
+               crc7_valid <= '0;
+            // Exit the command transmission state
+            // if (sclk_negedge && command_pos == '0) begin
+            // end
+         end
+      end
 
-        // Initialization
-        if (state[INIT_STATE]) begin
-            if (state[MILLISECOND_WAIT_STATE]) begin
-                ms_waiter <= ms_waiter + 1'b1;
-                // Drive the resets of the crc modules low
-                crc7_rst <= '0;
-                crc16_rst <= '0;
+             // Initialization
+      if (state[INIT_STATE]) begin
+         if (state[MILLISECOND_WAIT_STATE]) begin
+            ms_waiter <= ms_waiter + 1'b1;
+             // After a millisecond has elapsed, change the following states
+             // Disable the millisecond wait state
+            state[MILLISECOND_WAIT_STATE] <= ms_waiter == MILLISECOND_MHZ ? '0 : '1;
+                   // Activate sclk
+            state[SCLK_ACTIVE_STATE] <= ms_waiter == MILLISECOND_MHZ  ? '1 : '0;
+                   // The next phase is SCLK_WAIT_STATE
+            state[SCLK_WAIT_STATE] <= ms_waiter == MILLISECOND_MHZ ? '1 : '0;
+         end
+         else if (state[SCLK_WAIT_STATE]) begin
+                   // According to the specification, we should hold the chip select high during the 74 clock period toggle
+            ss <= '1;
+            mosi <= '1;
 
-                state[MILLISECOND_WAIT_STATE] <= ms_waiter == MILLISECOND_MHZ ? '0 : '1;
-                // Activate sclk
-                state[SCLK_ACTIVE_STATE] <= ms_waiter == MILLISECOND_MHZ  ? '1 : '0;
-                // The next phase is SCLK_WAIT_STATE
-                state[SCLK_WAIT_STATE] <= ms_waiter == MILLISECOND_MHZ ? '1 : '0;
-            end else if (state[SCLK_WAIT_STATE]) begin
-                    ss <= '1;
-                    mosi <= '1;
+            if (sclk_posedge)
+               // `display(("SCLK_WAIT_STATE: spi_counter: %0d", spi_counter));
+            spi_counter <= sclk_posedge ? spi_counter + 1'b1 : spi_counter;
 
-                    if (sclk_posedge) $display("SCLK_WAIT_STATE: spi_counter: %d @%d ns", spi_counter, $time);
-                    spi_counter <= sclk_posedge ? spi_counter + 1'b1 : spi_counter;
-
-                    // We're done waiting (technically, we will be one cycle into the SPI cycle, but that can't be helped since spi_counter == SCLK_WAIT - 1 would have us wait for a single cycle if SCLK_WAIT were 1, as opposed to the requisite number of ticks)
-                    state[SCLK_WAIT_STATE] <= spi_counter == SCLK_WAIT ? '0 : '1;
-                    state[INIT_CMD0_STATE] <= spi_counter == SCLK_WAIT ? '1 : '0;
-            // State 0: send command
-            end else if (state[INIT_CMD0_STATE]) begin
-                // Formatting the CMD0 command
-                if (!state[DO_COMMAND] && !command_done) begin
-                    // $display("command: %b", {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1});
-                    command <= {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1};
-                    state[DO_COMMAND] <= '1;
-                    $display("INIT_CMD0_STATE: CMD0 issued at @%d ns", $time);
-                end
-
-                if (command_done) begin
-                    state[INIT_CMD0_STATE] <= '0;
-                    state[INIT_CMD8_STATE] <= '1;
-                    state[RECEIVE_R1_STATE] <= '1;
-                    command_done <= '0;
-                    $display("INIT_CMD0_STATE: CMD0 sent at @%d ns", $time);
-                end
-            end else if (state[INIT_CMD8_STATE]) begin
-                // $display("command_done = %d @%d ns", command_done, $time);
-                // Formatting the CMD8 command
-                // Wait for a good response
-                if (!state[RECEIVE_R1_STATE] && r1_response == 1) begin
-                    // $display("ready to send cmd8");
-                    if (!state[DO_COMMAND] && !command_done) begin
-                        // $display("command: %b", {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1});
-                        command <= {1'b0, 1'b1, 6'd8, 32'h1AA, 7'b0, 1'b1};
-                        state[DO_COMMAND] <= '1;
-                        $display("INIT_CMD8_STATE: CMD8 (%b) issued @%d ns, command_done: %d", {1'b0, 1'b1, 6'd8, 32'h1AA, 7'b0, 1'b1}, $time, command_done);
-                    end
-
-                    if (command_done) begin
-                        state[INIT_CMD8_STATE] <= '0;
-                        state[INIT_ACMD41_STATE] <= '1;
-                        state[RECEIVE_R7_STATE] <= '1;
-                        command_done <= '0;
-                        $display("INIT_CMD8_STATE: CMD8 sent @%d ns", $time);
-                    end
-                end
-            end else if (state[INIT_ACMD41_STATE]) begin
-                if (r7_done) begin
-                    // Wait to receive an R7
-                    if (!state[RECEIVE_R7_STATE]) begin
-                        if (!state_sent_command) begin
-                            state[DO_COMMAND] <= '1;
-                            state_sent_command <= '1;
-                            // If we had a timeout or error, we should use 0 as our argument (else)
-                            if (!timeout && !r7_err) begin
-                                command <= {2'b01, 6'd41, 32'h40000000, 7'b0, 1'b1};
-                                $display("INIT_ACMD41_STATE: ACMD41 (%b) issued @%d ns", {2'b01, 6'd41, 32'h40000000, 7'b0, 1'b1}, $time);
-                            end else begin
-                                if (timeout) cmd8_timed_out <= '1;
-                                timeout <= '0;
-                                r7_err <= '0;
-                                command <= {2'b01, 6'd41, 32'h0, 7'b0, 1'b1};
-                                $display("INIT_ACMD41_STATE: ACMD41 (%b) issued @%d ns", {2'b01, 6'd41, 32'h0, 7'b0, 1'b1}, $time);
-                            end
-                        end
-
-                        // We just finished sending the command and aren't receiving a response
-                        if (command_done && !state[RECEIVE_R1_STATE]) begin
-                            state[RECEIVE_R1_STATE] <= '1;
-                            command_done <= '0;
-                            state_initiated_response <= '1;
-                        // Wait to receive a response
-                        end else if (state_initiated_response && !state[RECEIVE_R1_STATE]) begin
-                            state_sent_command <= '0;
-                            state_initiated_response <= '0;
-                            // Device initializing, try again
-                            if (r1_response == 1) begin
-                                // Triger the timeout path
-                                if (cmd8_timed_out) timeout <= '1;
-                            // Timeout
-                            end else if (timeout) begin
-                                timeout <= '0;
-                                // If we're on the cmd8 timeout path, then transition to cmd1
-                                if (cmd8_timed_out) begin
-                                    state[INIT_ACMD41_STATE] <= '0;
-                                    state[INIT_CMD1_STATE] <= '1;
-                                end
-                            end
-                        end
-                    end
-                    // if (sclk_posedge) $display("r7_err: %d", r7_err);
-                end
+                   // We're done waiting (technically, we will be one cycle into the SPI cycle, but that can't be helped since spi_counter == SCLK_WAIT - 1 would have us wait for a single cycle if SCLK_WAIT were 1, as opposed to the requisite number of ticks)
+            state[SCLK_WAIT_STATE] <= spi_counter == SCLK_WAIT ? '0 : '1;
+            state[INIT_CMD0_STATE] <= spi_counter == SCLK_WAIT ? '1 : '0;
+                   // Send CMD0
+         end
+         else if (state[INIT_CMD0_STATE]) begin
+                   // Formatting the CMD0 command
+            if (!state[DO_COMMAND] && !command_sent && !await_response) begin
+                      // `display(("command: %b", {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1}));
+               command <= {2'b01, 6'd0, 32'd0, 7'b0, 1'b1};
+               state[DO_COMMAND] <= '1;
+               command_sent <= '1;
+               `display(("INIT_CMD0_STATE: CMD0 issued"));
+                      // Wait for DO_COMMAND to be de-asserted by the command routine
             end
-        end else if (state[READ_STATE]) begin
-        end else if (state[WRITE_STATE]) begin
-        end else if (state[IDLE_STATE]) begin
-        end
-    end
-end
+            else if (!state[DO_COMMAND] && command_sent && !await_response) begin
+               state[RECEIVE_R1_STATE] <= '1;
+               await_response <= '1;
+               `display(("INIT_CMD0_STATE: CMD0 sent"));
+                      // Wait to receive a response or timeout
+            end
+            else if (response_received || timeout) begin
+               if (response_received[R1_RESPONSE_SLOT]) begin
+                         // As per the spec, the card should be in the idle state as indicated by a 1 in the R! response frame
+                  if (r1_response == 1'b1) begin
+                     response_received[R1_RESPONSE_SLOT] <= '0;
+                     state[INIT_CMD0_STATE] <= '0;
+                     state[INIT_CMD8_STATE] <= '1;
+                     command_sent <= '0;
+                     await_response <= '0;
+                  end
+               end
+            end
+         end
+         // Then send CMD8
+         else if (state[INIT_CMD8_STATE]) begin
+            // `display(("command_done = %0d @%0d ns", command_done, $time));
+            // Formatting the CMD8 command
+            if (!state[DO_COMMAND] && !command_sent) begin
+                      // `display(("command: %b", {1'b0, 1'b1, 6'd0, 32'd0, 7'b0, 1'b1}));
+               command <= {2'b01, 6'd8, 32'h1AA, 7'b0, 1'b1};
+               state[DO_COMMAND] <= '1;
+               command_sent <= '1;
+               `display(("INIT_CMD8_STATE: CMD8 (%b) issued", {2'b01, 6'd8, 32'h1AA, 7'b0, 1'b1}));
+            end
+            // Wait for DO_COMMAND to be de-asserted by the command routine
+            else if (!state[DO_COMMAND] && command_sent) begin
+               state[INIT_CMD8_STATE] <= '0;
+               state[INIT_ACMD41_STATE] <= '1;
+               state[RECEIVE_R7_STATE] <= '1;
+               command_sent <= '0;
+               `display(("INIT_CMD8_STATE: CMD8 sent"));
+            end
+         end
+         else if (state[INIT_ACMD41_STATE]) begin
+            // Wait to receive an R7
+            if ((response_received[R37_RESPONSE_SLOT] || timeout) && !command_sent && !await_response) begin
+               state[DO_COMMAND] <= '1;
+               command_sent <= '1;
+               // If we timedout or an error occured, send a clear ACMD41
+               if (right_acmd41 || timeout || r37_response[R3_SIZE-1:R3_SIZE-R1_SIZE-1] != '0) begin
+                  command <= {2'b01, 6'd41, 32'h0, 7'b0, 1'b1};
+                  right_acmd41 <= '1;
+                  `display(("INIT_ACMD41_STATE: ACMD41 (%b) issued", {2'b01, 6'd41, 32'h0, 7'b0, 1'b1}));
+               end
+               else begin
+                  command <= {2'b01, 6'd41, 2'b01, 30'h0, 7'b0, 1'b1};
+                  `display(("INIT_ACMD41_STATE: ACMD41 (%b) issued", {2'b01, 6'd41, 2'b01, 30'h0, 7'b0, 1'b1}));
+               end
+               // Clear response status
+               response_received[R37_RESPONSE_SLOT] <= '0;
+               timeout <= '0;
+            end
+            // Wait for the command to be completely sent
+            else if (!state[DO_COMMAND] && command_sent && !await_response) begin
+               state[RECEIVE_R1_STATE] <= '1;
+               command_sent <= '0;
+               await_response <= '1;
+            end
+            // Transition decision
+            else if ((response_received[R1_RESPONSE_SLOT] || timeout) && await_response) begin
+               response_received[R1_RESPONSE_SLOT] <= '0;
+               // On a timeout or error other 0x1, go to CMD1
+               if (right_acmd41 && (timeout || r1_response > 1)) begin
+                  if (timeout)
+                     `display(("INIT_ACMD41_STATE: timeout occured, right_acmd41: %b", right_acmd41));
+                  timeout <= '0;
+                  state[INIT_ACMD41_STATE] <= '0;
+                  state[INIT_CMD1_STATE] <= '1;
+               end
+               // Transition to CMD58 or CMD16 depending on which side we are
+               else if (r1_response == '0 && !timeout) begin
+                  state[INIT_ACMD41_STATE] <= '0;
+                  if (right_acmd41)
+                     state[INIT_CMD16_STATE] <= '1;
+                  else
+                     state[INIT_CMD58_STATE] <= '1;
+               end
+               // Loop back on outselves in this case
+               else if (r1_response == 1'b1 && !timeout) begin
+                  response_received[R37_RESPONSE_SLOT] <= '1;
+               end
+               command_sent <= '0;
+               await_response <= '0;
+            end
+         end
+         // Get the OCR
+         else if (state[INIT_CMD58_STATE]) begin
+            if (!state[DO_COMMAND] && !command_sent && !await_response) begin
+               command <= {2'b01, 6'd58, 32'h0, 7'b0, 1'b1};
+               state[DO_COMMAND] <= '1;
+               command_sent <= '1;
+               `display(("INIT_CMD58_STATE: CMD58 (%b) issued", {2'b01, 6'd58, 32'h0, 7'b0, 1'b1}));
+            end
+            // Wait for the command to be sent
+            else if (!state[DO_COMMAND] && command_sent && !await_response) begin
+               await_response <= '1;
+               state[RECEIVE_R3_STATE] <= '1;
+               `display(("INIT_CMD58_STATE: CMD58 sent"));
+            end
+            else if (response_received[R37_RESPONSE_SLOT]) begin
+               response_received <= '0;
+               await_response <= '0;
+               command_sent <= '0;
+               // If bit 30 (SDSC), we need to set the block size
+               if (r37_response[30] == 0) begin
+                  state[INIT_CMD16_STATE] <= '1;
+                  state[INIT_CMD58_STATE] <= '0;
+               end
+               // Initialization done
+               else if (r37_response[30] == 1) begin
+                  state[INIT_CMD58_STATE] <= '0;
+                  state[INIT_STATE] <= '0;
+                  state[IDLE_STATE] <= '1;
+               end
+            end
+         end // CMD58
+         else if (state[INIT_CMD1_STATE]) begin
+            if (!state[DO_COMMAND] && !command_sent && !await_response) begin
+               state[DO_COMMAND] <= '1;
+               command <= {2'b01, 6'd1, 32'h0, 7'b0, 1'b1};
+               command_sent <= '1;
+               `display(("INIT_CMD1_STATE: CMD1 (%b) issued", {2'b01, 6'd1, 32'h0, 7'b0, 1'b1}));
+            end
+            // Wait for the command to be sent
+            else if (!state[DO_COMMAND] && command_sent && !await_response) begin
+               await_response <= '1;
+               state[RECEIVE_R1_STATE] <= '1;
+               `display(("INIT_CMD1_STATE: CMD1 sent"));
+                      // Await a response
+            end
+            else if (response_received[R1_RESPONSE_SLOT]) begin
+               response_received <= '0;
+               await_response <= '0;
+               command_sent <= '0;
+               // If it's 1, start over (nothing needs to be done). If it's a 0, go to cmd16
+               if (r1_response == '0) begin
+                  state[INIT_CMD16_STATE] <= '1;
+                  state[INIT_CMD1_STATE] <= '0;
+               end
+            end
+         end
+         else if (state[INIT_CMD16_STATE]) begin
+            if (!state[DO_COMMAND] && !command_sent && !await_response) begin
+               state[DO_COMMAND] <= '1;
+               command <= {2'b01, 6'd16, 32'h200, 7'b0, 1'b1};
+               command_sent <= '1;
+               `display(("INIT_CMD16_STATE: CMD16 (%b) issued", {2'b01, 6'd16, 32'h200, 7'b0, 1'b1}));
+            end
+            // Wait for the command to be sent
+            else if (!state[DO_COMMAND] && command_sent && !await_response) begin
+               await_response <= '1;
+               state[RECEIVE_R1_STATE] <= '1;
+               `display(("INIT_CMD16_STATE: CMD16 sent"));
+                      // Await a response
+            end
+            else if (response_received[R1_RESPONSE_SLOT]) begin
+               // If it's 0, we're done
+               if (r1_response == '0) begin
+                  response_received <= '0;
+                  await_response <= '0;
+                  command_sent <= '0;
+                  state[INIT_CMD16_STATE] <= '0;
+                  state[IDLE_STATE] <= '1;
+                  state[INIT_STATE] <= '0;
+               end
+            end
+         end
+      end
+      else if (state[READ_STATE]) begin
+      end
+      else if (state[WRITE_STATE]) begin
+      end
+      else if (state[IDLE_STATE]) begin
+         $finish;
+      end
+   end
 
 endmodule

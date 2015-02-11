@@ -3,7 +3,7 @@
 /* 
  * Owner: Tim Paine
  */
-module rsa_directed_test();
+module mult2_directed_test();
 
   logic clk;
   logic rst;
@@ -11,7 +11,7 @@ module rsa_directed_test();
   logic [4096] o;
   integer i; 
 
-  multiplier2 multiplier_inst(.*);
+  multiplier2 multiplier2_inst(.*);
 
 
   initial begin

@@ -3,7 +3,7 @@
 /* 
  * Owner: Tim Paine
  */
-module rsa_directed_test();
+module mult_directed_test();
 
   logic clk;
   logic rst;

@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 
 /* module for performing 4096 bit multiplication */
-module multiplier(
+module multiplier2(
 	clk, rst, a, b, o
 );
 	input logic clk, rst;

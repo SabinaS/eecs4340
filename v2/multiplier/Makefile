@@ -22,6 +22,9 @@ multbench:
 multdirbench: 
 	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice multiplier.sv  mult_directed_tb.sv -o multdir.exe
 
+mult2dirbench: 
+	vcs -full64 -PP -sverilog +define+SV +define+VPD -notice multiplier2.sv  mult2_directed_tb.sv -o multdir.exe
+
 multbench_coverage_directed:
 	vcs -full64 -cm line+tgl+cond+fsm+branch+assert -debug_pp -sverilog -notice +lint=all,noVCDE +define+SV +define+VPD $(MULT_DIRECTED_FILES) -o $(MULT_OUTPUT)
 	./$(MULT_OUTPUT) -cm line+cond+tgl+fsm+branch+assert > coverage_run_out

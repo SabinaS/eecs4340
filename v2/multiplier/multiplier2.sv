@@ -8217,7 +8217,7 @@ module multiplier2(
 			if(stage==12'b111111111111) begin
 				stage <= 'b0;
 			end else begin
-				stage <= stage+1'b0001;
+				stage <= stage+1'b1;
 			end
 		end
 	end

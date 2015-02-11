@@ -8216,7 +8216,7 @@ module multiplier2(
 			endcase
 			if(stage==12'b111111111111) begin
 				stage <= 'b0;
-			else begin
+			end else begin
 				stage <= stage+1'b0001;
 			end
 		end

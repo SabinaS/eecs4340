@@ -8214,6 +8214,11 @@ module multiplier(
 	 		intermediate[4095+4095:0+4095] <= intermediate[4095+4095:0+4095] + a; end
 
 			endcase
+			if(stage==12'b111111111111) begin
+				stage <= 'b0;
+			else begin
+				stage <= stage+1'b0001;
+			end
 		end
 	end
 

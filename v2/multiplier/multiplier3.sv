@@ -22,6 +22,7 @@ module multiplier3(
 		end else begin
 			if(stage == 12'b000000000000) begin
 				shifter <= a<<1;
+				stage <= stage + 1'b1;
 				if(b[0] == 1) begin
 					intermediate += a;
 				end

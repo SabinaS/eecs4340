@@ -32,7 +32,7 @@ set CLK "clk"; # The name of your clock
 set virtual 0; # 1 if virtual clock, 0 if real clock
 
 # Timing information
-set clkPeriodNS 2.5 ; # Desired clock period (in ns)
+set clkPeriodNS 1000 ; # Desired clock period (in ns)
 # Input delay tells DC how long after the clock before an input becomes valid.
 set inDelayNS [expr $clkPeriodNS*.1]; # Delay from clock to inputs valid
 set outDelayNS [expr $clkPeriodNS*.1]; # Delay from clock to output valid

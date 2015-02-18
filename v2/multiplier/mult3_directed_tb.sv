@@ -7,8 +7,8 @@ module mult3_directed_test();
 
   logic clk;
   logic rst;
-  logic [4096] a, b;
-  logic [4096] o;
+  logic [1024] a, b;
+  logic [1024] o;
   integer i; 
 
   multiplier3 multiplier3_inst(.*);
@@ -26,7 +26,7 @@ module mult3_directed_test();
     
     a = 'd02;
     b = 'd02;
-    for(i=0;i<4096;i++) begin
+    for(i=0;i<1024;i++) begin
     #1 clk = 1;
     #1 clk = 0;
     end

@@ -51,8 +51,8 @@ set hdlin_check_no_latch true
 set useUltra 0 ; # 1 for compile_ultra, 0 for compile
 
 # mapEffort, useUngroup are for non-ultra compile.
-set mapEffort1 high; # First pass - low, medium, or high
-set mapEffort2 high; # second pass - low, medium, or high
+set mapEffort1 low; # First pass - low, medium, or high
+set mapEffort2 low; # second pass - low, medium, or high
 set useUngroup 0 ; # 0 if no flatten, 1 if flatten
 
 # Control the writing of result files

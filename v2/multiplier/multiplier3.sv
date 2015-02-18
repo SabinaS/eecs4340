@@ -1,18 +1,18 @@
 `timescale 1ns/1ns
 
-/* module for performing 4096 bit multiplication */
+/* module for performing bit multiplication */
 module multiplier3(
 	clk, rst, a, b, o
 );
 	input logic clk, rst;
-	input logic [4095:0] a, b; 
-	output logic [4095:0] o;
+	input logic [1023:0] a, b; 
+	output logic [1023:0] o;
 
-	logic [8191:0] intermediate; 
-	logic [8191:0] shifter; 
+	logic [2047:0] intermediate; 
+	logic [2047:0] shifter; 
 	logic [11:0] stage; 
 
-	assign o = intermediate[4095:0];
+	assign o = intermediate[1023:0];
 
 	always_ff @(posedge clk) begin
 		if(rst) begin
@@ -20,13 +20,13 @@ module multiplier3(
 			stage <= 'b0;
 			shifter <= 'b0;
 		end else begin
-			if(stage == 12'b000000000000) begin
+			if(stage == 0) begin
 				shifter <= a<<1;
 				stage <= stage + 1'b1;
 				if(b[0] == 1) begin
 					intermediate <= intermediate + a;
 				end
-			end else if(stage==12'b111111111111) begin
+			end else if(stage== 1023) begin
 				stage <= 'b0;
 				shifter <= 'b0;
 			end else begin

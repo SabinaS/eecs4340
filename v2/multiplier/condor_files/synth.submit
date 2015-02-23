@@ -1,0 +1,7 @@
+executable      = synth.sh
+universe        = vanilla
+output          = synth.out
+error           = synth.err
+log             = synth.log
+getenv          = True
+queue

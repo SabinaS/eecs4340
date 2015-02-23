@@ -16,13 +16,13 @@ echo "*** `date`: Cleaning up workspace ***"
 cleanjunk
 
 echo "*** `date`: Setting up environment ***"
-source /proj/arcade/home/tkp2108/research/DPU/verilog/setup_synopsys.sh
+source /proj/castl/development/synopsys64/env_castl.sh
 
 echo "*** `date`: Invoking dc_shell ***"
 dc_shell -f dsyn.tcl > dc_shell.out 2>&1
 
-echo "*** `date`: Invoking icc_shell ***"
-icc_shell -f psyn.tcl > icc_shell.out 2>&1
+#echo "*** `date`: Invoking icc_shell ***"
+#icc_shell -f psyn.tcl > icc_shell.out 2>&1
 
 echo "*** `date`: Cleaning up after self ***"
 cleanjunk

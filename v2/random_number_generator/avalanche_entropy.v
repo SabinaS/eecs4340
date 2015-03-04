@@ -41,6 +41,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //======================================================================
+`timescale 1ns/100ps
 
 module avalanche_entropy(
                          input wire           clk,

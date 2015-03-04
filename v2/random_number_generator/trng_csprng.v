@@ -35,6 +35,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //======================================================================
+`timescale 1ns/100ps
 
 module trng_csprng(
                    // Clock and reset.

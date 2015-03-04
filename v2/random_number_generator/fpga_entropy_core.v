@@ -35,6 +35,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //======================================================================
+`timescale 1ns/1ns
 
 module fpga_entropy_core(
                          // Clock and reset.

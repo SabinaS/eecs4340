@@ -36,6 +36,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //======================================================================
+`timescale 1ns/1ns
 
 module bp_osc #(parameter WIDTH = 8)
              (

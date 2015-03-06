@@ -118,6 +118,7 @@ module avalanche_entropy(
 
   assign entropy_enabled = enable_reg;
 
+  wire unused;
 
   //----------------------------------------------------------------
   // Core instantiation.
@@ -130,6 +131,7 @@ module avalanche_entropy(
 
                               .enable(enable_reg),
 
+                              .entropy_enabled(unused),
                               .entropy_data(entropy_data),
                               .entropy_valid(entropy_valid),
                               .entropy_ack(entropy_ack),

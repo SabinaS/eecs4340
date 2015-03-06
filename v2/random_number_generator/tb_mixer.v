@@ -100,6 +100,8 @@ module tb_mixer();
 
   reg [31 : 0]  read_data;
 
+  wire [7:0] unused1;
+  wire unused2;
 
   //----------------------------------------------------------------
   // Device Under Test.
@@ -138,7 +140,10 @@ module tb_mixer();
 
                  .seed_data(tb_seed_data),
                  .seed_syn(tb_syn),
-                 .seed_ack(tb_ack)
+                 .seed_ack(tb_ack),
+
+                 .debug(unused1),
+                 .debug_update(unused2)
                 );
 
 

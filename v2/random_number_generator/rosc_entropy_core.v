@@ -134,8 +134,8 @@ module rosc_entropy_core(
         rosc #(.WIDTH(1)) rosc_array(.clk(clk),
                                      .we(rosc_we),
                                      .reset_n(reset_n),
-                                     .opa(opa),
-                                     .opb(opb),
+                                     .opa(opa[i]),
+                                     .opb(opb[i]),
                                      .dout(rosc_dout[i])
                                     );
       end

@@ -1,17 +1,9 @@
 `timescale 1ns/1ns
-module spi_port #(
-          parameter CLK_MHZ = 50,
-          parameter BUS_WIDTH = 128,
-          parameter SCLK_WAIT = 74,
-          parameter COMMAND_WIDTH = 6 * 8,
-          parameter INTERNAL_DAT_WIDTH = 8,
-          parameter COMMAND_BUF_SIZE = INTERNAL_DAT_WIDTH
-       ) (
+module spi_port (
           spi_ifc.dut d
        );
 
-spi_core #(CLK_MHZ, BUS_WIDTH, SCLK_WAIT, COMMAND_WIDTH,
-           INTERNAL_DAT_WIDTH, COMMAND_BUF_SIZE) spi_core
+spi_core spi_core
          (
             .clk(d.clk),
             .rst(d.rst),

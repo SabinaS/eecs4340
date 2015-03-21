@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-`include "../mont_mult/_parameter.v"
+`include "_parameter.v"
 
 // Multimedia File Encryption (Top Level)
 module mfe (mfe_ifc.dut d);

@@ -1,6 +1,6 @@
 // MonPro module
 // follow this algorithm: http://cs.ucsb.edu/~koc/cs290g/docs/w01/mon1.pdf
-`include "_parameter.v"
+`include "mont_mult/_parameter.v"
 
 module ModExp
 (

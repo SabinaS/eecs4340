@@ -7,18 +7,39 @@ module mfe (mfe_ifc.dut d);
     //TODO
     
     //for modexp
-    logic clk,
-    logic reset,
-    logic startInput,   // tell FPGA to start input 
-    logic startCompute, // tell FPGA to start compute
-    logic getResult,    // tell FPGA to output result
-    logic [`DATA_WIDTH - 1 : 0] m_buf,  
-    logic [`DATA_WIDTH - 1 : 0] e_buf, 
-    logic [3 : 0] state,
-    logic [4 : 0] exp_state,   //  for MonExp
-    logic [`DATA_WIDTH - 1 : 0] res_out
+    logic clk;
+    logic reset;
+    logic startInpu; 
+    logic startCompute;
+    logic getResult;
+    logic [`DATA_WIDTH - 1 : 0] m_buf;  
+    logic [`DATA_WIDTH - 1 : 0] e_buf;
+    logic [3 : 0] state;
+    logic [4 : 0] exp_state;  
+    logic [`DATA_WIDTH - 1 : 0] res_out;
     
     ModExp mod(.*);
 
+
+
+    logic clk;
+    logic reset_n;
+
+    logic avalanche_noise;
+
+    logic cs;
+    logic we;
+    logic [11 : 0] address;
+    logic [31 : 0] write_data;
+    logic [31 : 0] read_data;
+    logic error;
+
+    logic [7 : 0] debug;
+    logic debug_update;
+
+    logic security_error;
+
+
+    trng trng(.*);
 
 endmodule

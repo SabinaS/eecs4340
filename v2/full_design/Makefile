@@ -4,7 +4,9 @@ MFE_BENCH=mfe_tb.sv
 MFE_DUT=mfe.sv
 MFE_OUTPUT=mfetestbench.exe
 
-MODULES = status_driver.sv
+MODULES = status_driver.sv \
+	mont_mult/*.v \
+	random_number_generator/*.v
 
 .PHONY: all
 all: mfebench

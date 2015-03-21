@@ -7,7 +7,6 @@ module mfe (mfe_ifc.dut d);
     //TODO
     
     //for modexp
-    logic clk;
     logic reset;
     logic startInpu; 
     logic startCompute;
@@ -22,11 +21,8 @@ module mfe (mfe_ifc.dut d);
 
 
 
-    logic clk;
     logic reset_n;
-
     logic avalanche_noise;
-
     logic cs;
     logic we;
     logic [11 : 0] address;

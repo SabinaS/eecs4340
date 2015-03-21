@@ -6,9 +6,7 @@ class transaction;
     function bit check_reset(logic [6:0] status_leds);
     	
     	status_leds = '0; 
-    	ps2_dat = '0; 
-    	
-    	return((status_leds == '0) && (ps2_dat == '0));
+    	return((status_leds == '0));
         
     endfunction 
     

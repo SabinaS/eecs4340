@@ -1,19 +1,24 @@
 `timescale 1ns/1ns
+`include "../mont_mult/_parameter.v"
+
 // Multimedia File Encryption (Top Level)
 module mfe (mfe_ifc.dut d);
 
     //TODO
     
-
-
-    // // The PS/2 module wires (a small set for communication)
-    // wire [15:0]         key_char_out;
-    // wire                key_char_out_valid;
+    //for modexp
+    logic clk,
+    logic reset,
+    logic startInput,   // tell FPGA to start input 
+    logic startCompute, // tell FPGA to start compute
+    logic getResult,    // tell FPGA to output result
+    logic [`DATA_WIDTH - 1 : 0] m_buf,  
+    logic [`DATA_WIDTH - 1 : 0] e_buf, 
+    logic [3 : 0] state,
+    logic [4 : 0] exp_state,   //  for MonExp
+    logic [`DATA_WIDTH - 1 : 0] res_out
     
-    // keyboard_driver keyboard (.char_o(key_char_out),
-    //                         .char_valid_o(key_char_out_valid),
-    //                         .clk(d.clk), .ps2_clk(d.ps2_clk),
-    //                         .ps2_dat(d.ps2_dat));
+    ModExp mod(.*);
 
 
 endmodule

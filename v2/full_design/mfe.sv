@@ -8,7 +8,7 @@ module mfe (mfe_ifc.dut d);
     
     //for modexp
     logic reset;
-    logic startInpu; 
+    logic startInput; 
     logic startCompute;
     logic getResult;
     logic [`DATA_WIDTH - 1 : 0] m_buf;  
@@ -17,7 +17,7 @@ module mfe (mfe_ifc.dut d);
     logic [4 : 0] exp_state;  
     logic [`DATA_WIDTH - 1 : 0] res_out;
     
-    ModExp mod(.*);
+    ModExp mod(.clk(d.clk), .reset(d.rst), .*);
 
 
 
@@ -36,6 +36,6 @@ module mfe (mfe_ifc.dut d);
     logic security_error;
 
 
-    trng trng(.*);
+    trng trng(.clk(d.clk), .reset_n(d.rst), .*);
 
 endmodule

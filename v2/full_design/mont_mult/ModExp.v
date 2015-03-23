@@ -14,6 +14,7 @@ module ModExp
 	output reg [3 : 0] state,
 	output reg [4 : 0] exp_state,	//	for MonExp
 	output reg [`DATA_WIDTH - 1 : 0] res_out
+	//TODO add output read
 );
 
 	reg [`DATA_WIDTH - 1 : 0] m_in [`TOTAL_ADDR - 1 : 0];	// for m input
@@ -124,7 +125,7 @@ module ModExp
 				end
 				
 				LOAD_N:		// read and initialize r, t, nprime0, n
-				begin
+				begin //TODO take as inputs?
 					if(i <= `TOTAL_ADDR32) begin
 						if(k == 0) begin
 							addr_buf = i;

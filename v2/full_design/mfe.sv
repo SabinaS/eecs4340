@@ -7,7 +7,6 @@ module mfe (mfe_ifc.dut d);
     //TODO
     
     //for modexp
-    logic reset;
     logic startInput; 
     logic startCompute;
     logic getResult;
@@ -19,9 +18,6 @@ module mfe (mfe_ifc.dut d);
     
     ModExp mod(.clk(d.clk), .reset(d.rst), .*);
 
-
-
-    logic reset_n;
     logic avalanche_noise;
     logic cs;
     logic we;

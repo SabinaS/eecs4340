@@ -12,12 +12,20 @@ module modexp
 	input startCompute,	// tell FPGA to start compute
 	input getResult,	// tell FPGA to output result
 	input [`DATA_WIDTH - 1 : 0] m_buf,	
-	input [`DATA_WIDTH - 1 : 0] e_buf, 
+	input [`DATA_WIDTH - 1 : 0] e_buf,
+	//TODO VERIFY IF THE FOLLOWING IS TRUE
+	/*
+	Since the modulus is shared between private and public key, 
+	I can offload all of the work computing n0', r, and t to the SW
+	system, and merely buffer these as I do M and E.
+	*/
+
 	output reg [3 : 0] state,
 	output reg [4 : 0] exp_state,	//	for MonExp
 	output reg [`DATA_WIDTH - 1 : 0] res_out
 );
 
+	//These are the only vars I need. 
 	reg [`DATA_WIDTH - 1 : 0] m_in [`TOTAL_ADDR - 1 : 0];	// for m input
 	reg [`DATA_WIDTH - 1 : 0] r_in [`TOTAL_ADDR - 1 : 0];	// for r input
 	reg [`DATA_WIDTH - 1 : 0] t_in [`TOTAL_ADDR - 1 : 0];	// for t input
@@ -25,15 +33,18 @@ module modexp
 	reg [`DATA_WIDTH - 1 : 0] nprime0;	// a memory must have unpacked array! for readmemh
 	reg [`DATA_WIDTH - 1 : 0] n_in [`TOTAL_ADDR - 1 : 0];	// for n input
 	
+	//TODO necessary?
 	reg [`DATA_WIDTH - 1 : 0] m_bar [`TOTAL_ADDR - 1 : 0];	// multiple usage, to save regs
 	reg [`DATA_WIDTH - 1 : 0] c_bar [`TOTAL_ADDR - 1 : 0];	// multiple usage, to save regs
 	
+	//TODO necessary?
 	reg [`DATA_WIDTH - 1 : 0] z;
 	reg [`DATA_WIDTH - 1 : 0] v [`TOTAL_ADDR + 1 : 0];
 	reg [`DATA_WIDTH - 1 : 0] m;
-	// Declare states
+
+
+	// Declare states WHATEVER
 	parameter S0 = 0, S1 = 1, S2 = 2, S3 = 3, S4 = 4, S5 = 5, S6 = 6, S7 = 7;
-	
 	parameter INIT_STATE = 0, LOAD_M_E = 1, LOAD_N = 2, WAIT_COMPUTE = 3, CALC_M_BAR = 4, GET_K_E = 5, BIGLOOP = 6, CALC_C_BAR_M_BAR = 7, CALC_C_BAR_1 = 8, COMPLETE = 9, OUTPUT_RESULT = 10, TERMINAL = 11;
 							
 	integer i;	// big loop i
@@ -51,18 +62,20 @@ module modexp
 	mul_add mul_add0 (.clk(clk), .x(x0), .y(y0), .z(z0), .last_c(last_c0), 
                 .s(s0), .c(c0));
 
+
+	//TODO don't need any of these
 	// for data initialization
-	reg [`ADDR_WIDTH32 - 1 : 0] addr_buf;
-	reg [1 : 0] addr_buf2;
-	wire [`DATA_WIDTH32 - 1 : 0] r_buf;
-	wire [`DATA_WIDTH32 - 1 : 0] t_buf;
-	wire [`DATA_WIDTH32 - 1 : 0] nprime0_buf;
-	wire [`DATA_WIDTH32 - 1 : 0] n_buf;
-	reg [`DATA_WIDTH32 - 1 : 0] res_buf;
-	r_mem r_mem0 (.address(addr_buf), .clock(clk), .q(r_buf));
-	t_mem t_mem0 (.address(addr_buf), .clock(clk), .q(t_buf));
-	nprime0_mem nprime0_mem0 (.address(addr_buf2), .clock(clk), .q(nprime0_buf));
-	n_mem n_mem0 (.address(addr_buf), .clock(clk), .q(n_buf));
+	// reg [`ADDR_WIDTH32 - 1 : 0] addr_buf;
+	// reg [1 : 0] addr_buf2;
+	// wire [`DATA_WIDTH32 - 1 : 0] r_buf;
+	// wire [`DATA_WIDTH32 - 1 : 0] t_buf;
+	// wire [`DATA_WIDTH32 - 1 : 0] nprime0_buf;
+	// wire [`DATA_WIDTH32 - 1 : 0] n_buf;
+	// reg [`DATA_WIDTH32 - 1 : 0] res_buf;
+	// r_mem r_mem0 (.address(addr_buf), .clock(clk), .q(r_buf));
+	// t_mem t_mem0 (.address(addr_buf), .clock(clk), .q(t_buf));
+	// nprime0_mem nprime0_mem0 (.address(addr_buf2), .clock(clk), .q(nprime0_buf));
+	// n_mem n_mem0 (.address(addr_buf), .clock(clk), .q(n_buf));
 	
 	initial begin	// set to 0 
 		for(i = 0; i < `TOTAL_ADDR + 2; i = i + 1) begin
@@ -71,6 +84,7 @@ module modexp
 		for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
 			m_in[i] = 64'h0000000000000000;
 			e_in[i] = 64'h0000000000000000;
+			//TODO add r,t,n0,n
 		end
 		res_out = 64'h0000000000000000;
 		
@@ -127,43 +141,44 @@ module modexp
 				
 				LOAD_N:		// read and initialize r, t, nprime0, n
 				begin
-					if(i <= `TOTAL_ADDR32) begin
-						if(k == 0) begin
-							addr_buf = i;
-							if(i <= 2)
-								addr_buf2 = i;
-							else 
-								addr_buf2 = 0;
-							k = 1;
-						end
-						else begin
-							k = 0;
-							if(i > 0) begin
-								if(i == 1)
-									nprime0[0 +: `DATA_WIDTH32] = nprime0_buf;
-								else if(i == 2)
-									nprime0[`DATA_WIDTH32 +: `DATA_WIDTH32] = nprime0_buf;
+					//TODO change to buffer
+					// if(i <= `TOTAL_ADDR32) begin
+					// 	if(k == 0) begin
+					// 		addr_buf = i;
+					// 		if(i <= 2)
+					// 			addr_buf2 = i;
+					// 		else 
+					// 			addr_buf2 = 0;
+					// 		k = 1;
+					// 	end
+					// 	else begin
+					// 		k = 0;
+					// 		if(i > 0) begin
+					// 			if(i == 1)
+					// 				nprime0[0 +: `DATA_WIDTH32] = nprime0_buf;
+					// 			else if(i == 2)
+					// 				nprime0[`DATA_WIDTH32 +: `DATA_WIDTH32] = nprime0_buf;
 									
-								if((i - 1) % 2 == 0) begin
-									t_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = t_buf;
-									n_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = n_buf;
-									r_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = r_buf;
-								end
-								else if((i - 1) % 2 == 1) begin
-									t_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = t_buf;
-									n_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = n_buf;
-									r_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = r_buf;
-								end
-							end
-							i = i + 1;
-						end
-					end
-					else begin
+					// 			if((i - 1) % 2 == 0) begin
+					// 				t_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = t_buf;
+					// 				n_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = n_buf;
+					// 				r_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = r_buf;
+					// 			end
+					// 			else if((i - 1) % 2 == 1) begin
+					// 				t_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = t_buf;
+					// 				n_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = n_buf;
+					// 				r_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = r_buf;
+					// 			end
+					// 		end
+					// 		i = i + 1;
+					// 	end
+					// end
+					// else begin
 						i = 0;
 						j = 0;
 						k = 0;
 						exp_state = WAIT_COMPUTE;
-					end				
+					// end				
 				end
 			
 				WAIT_COMPUTE:

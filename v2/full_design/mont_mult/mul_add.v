@@ -1,5 +1,5 @@
 // (multiplication, addition) component for MonPro
-`include "mont_mult/_parameter.v"
+`include "_parameter.v"
 `timescale 1 ns / 1 ns
 
 module mul_add

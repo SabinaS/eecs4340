@@ -29,6 +29,10 @@ module mfe (mfe_ifc.dut d);
     logic getResult; //input
     logic [`DATA_WIDTH - 1 : 0] m_buf;  //64 bits at a time
     logic [`DATA_WIDTH - 1 : 0] e_buf;   //64 bits at a time
+    logic [`DATA_WIDTH - 1 : 0] n_buf;   //64 bits at a time
+    logic [`DATA_WIDTH - 1 : 0] r_buf;   //64 bits at a time
+    logic [`DATA_WIDTH - 1 : 0] t_buf;   //64 bits at a time
+    logic nprime0_buf;   //64 bits at a time
     logic [3 : 0] state; //don't need to keep track of this
     logic [4 : 0] exp_state;  //don't need to keep track of this
     logic [`DATA_WIDTH - 1 : 0] res_out; //64 bits at a time

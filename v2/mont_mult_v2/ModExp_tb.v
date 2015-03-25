@@ -1,6 +1,6 @@
 `include "_parameter.v"
 
-module ModExp_tb();
+module modexp_tb();
 	reg clk;
 	reg reset;
 	reg [`DATA_WIDTH - 1 : 0] m_buf;
@@ -13,7 +13,7 @@ module ModExp_tb();
 	wire [4 : 0] exp_state;
 	wire [3 : 0] state;
 	
-	ModExp modexp0(
+	modexp modexp0(
 		.clk(clk), .reset(reset), .m_buf(m_buf), .e_buf(e_buf),
 		.startInput(startInput), .startCompute(startCompute), .getResult(getResult), 
 		.exp_state(exp_state), .state(state), .res_out(res_out)

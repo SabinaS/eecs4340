@@ -37,7 +37,7 @@ module mfe (mfe_ifc.dut d);
     logic [4 : 0] exp_state;  //don't need to keep track of this
     logic [`DATA_WIDTH - 1 : 0] res_out; //64 bits at a time
     
-    ModExp mod(.clk(d.clk), .reset(d.rst), .*);
+    modexp mod(.clk(d.clk), .reset(d.rst), .*);
 
     logic avalanche_noise; //noise source input
     logic cs;   //input, unsure, 1 when writing and reading

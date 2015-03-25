@@ -134,15 +134,19 @@ module modexp
 					if(i <= `TOTAL_ADDR) begin
 						m_in[i] <= m_buf;
 						e_in[i] <= e_buf;
-						
+						r_in[i] <= r_buf;
+						t_in[i] <= t_buf;
+						n_in[i] <= n_buf;
+						nprime0 [i] <= nprime0_buf;	
 						i = i + 1;
 					end
 					else begin
 						i = 0;
-						exp_state = LOAD_N;
+						exp_state = WAIT_COMPUTE;
 					end
 				end
 				
+				//FIXME useless
 				LOAD_N:		// read and initialize r, t, nprime0, n
 				begin		
 					if(i <= `TOTAL_ADDR) begin

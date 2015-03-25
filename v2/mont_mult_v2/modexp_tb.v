@@ -829,10 +829,13 @@ module modexp_tb();
 		startCompute = 0;
 		getResult = 1;
 
+		#10000
+		$finish;
+
 	end
 	
 
-	always begin
+	initial begin
 		$vdcpluson;
 		$monitor("%d", res_out);
 	end

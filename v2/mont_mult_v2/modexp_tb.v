@@ -833,7 +833,7 @@ module modexp_tb();
 	
 
 	always begin
-		$vdcpluson;
+		$vcdpluson;
 		$monitor("%d", res_out);
 	end
 

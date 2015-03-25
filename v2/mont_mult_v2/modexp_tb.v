@@ -10,7 +10,7 @@ module modexp_tb();
 	reg [`DATA_WIDTH - 1 : 0] r_buf;
 	reg [`DATA_WIDTH - 1 : 0] t_buf;
 	reg nprime0_buf;
-	reg [127:0] nprime0 = 16'h3bea2df6a3b18a91;
+	reg [127:0] nprime0 = 64'h3bea2df6a3b18a91;
 	reg startInput;
 	reg startCompute;
 	reg getResult;
@@ -249,7 +249,7 @@ module modexp_tb();
 		n_buf = 64'h349aae908fb5262c;
 		r_buf = 64'hcb65516f704ad9d3;
 		t_buf = 64'hd7c2368322eec88a;
-		#10}
+		#10
 		m_buf = 64'h027c013f38018399;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hf320cd576d14475b;
@@ -285,7 +285,7 @@ module modexp_tb();
 		n_buf = 64'h69d495dd81355c53;
 		r_buf = 64'h962b6a227ecaa3ac;
 		t_buf = 64'h565a3bcbc8747603;
-		#10}
+		#10
 		m_buf = 64'hdfde228125fb5f3d;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hd037cdff7c240d49;
@@ -315,7 +315,7 @@ module modexp_tb();
 		n_buf = 64'hc9546b439f9d0129;
 		r_buf = 64'h36ab94bc6062fed6;
 		t_buf = 64'h578e46c026e95b17;
-		#10}
+		#10
 		m_buf = 64'hb4d4dfccb7d779cc;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'h54c56c9a9cc9af4e;
@@ -405,7 +405,7 @@ module modexp_tb();
 		n_buf = 64'h73f7ba8e0445d656;
 		r_buf = 64'h8c084571fbba29a9;
 		t_buf = 64'hf2066470f135295f;
-		#10}
+		#10
 		m_buf = 64'h61d9fe398147a8f4;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hc10faa4003ba33db;
@@ -650,7 +650,7 @@ module modexp_tb();
 		n_buf = 64'h349aae908fb5262c;
 		r_buf = 64'hcb65516f704ad9d3;
 		t_buf = 64'hd7c2368322eec88a;
-		#10}
+		#10
 		m_buf = 64'h027c013f38018399;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hf320cd576d14475b;
@@ -686,7 +686,7 @@ module modexp_tb();
 		n_buf = 64'h69d495dd81355c53;
 		r_buf = 64'h962b6a227ecaa3ac;
 		t_buf = 64'h565a3bcbc8747603;
-		#10}
+		#10
 		m_buf = 64'hdfde228125fb5f3d;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hd037cdff7c240d49;
@@ -716,7 +716,7 @@ module modexp_tb();
 		n_buf = 64'hc9546b439f9d0129;
 		r_buf = 64'h36ab94bc6062fed6;
 		t_buf = 64'h578e46c026e95b17;
-		#10}
+		#10
 		m_buf = 64'hb4d4dfccb7d779cc;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'h54c56c9a9cc9af4e;
@@ -806,7 +806,7 @@ module modexp_tb();
 		n_buf = 64'h73f7ba8e0445d656;
 		r_buf = 64'h8c084571fbba29a9;
 		t_buf = 64'hf2066470f135295f;
-		#10}
+		#10
 		m_buf = 64'h61d9fe398147a8f4;
 		e_buf = 64'h0000000000000000;
 		n_buf = 64'hc10faa4003ba33db;

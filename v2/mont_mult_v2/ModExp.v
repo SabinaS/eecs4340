@@ -1,6 +1,8 @@
 // MonPro module
 // follow this algorithm: http://cs.ucsb.edu/~koc/cs290g/docs/w01/mon1.pdf
 `include "_parameter.v"
+`timescale 1 ps / 1 ps
+
 
 module modexp
 (

@@ -1,4 +1,5 @@
 `include "_parameter.v"
+`timescale 1 ps / 1 ps
 
 module n_mem (
 	address,

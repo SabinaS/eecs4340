@@ -36,7 +36,7 @@ module modexp_tb();
 		n_buf = 64'h0000000000000000;
 		r_buf = 64'h0000000000000000;
 		t_buf = 64'h0000000000000000;
-		nprime0_buf = nprime0[127];
+		nprime0_buf = 1'b0;
 		#100 startInput = 1;	
 
 		#10
@@ -45,6 +45,7 @@ module modexp_tb();
 		n_buf = 64'h1622bd795fec898f;
 		t_buf = 64'h73053f82acaa289e;
 		r_buf = 64'he9dd4286a0137671;
+		nprime0_buf = nprime0[127];
 		#10
 		m_buf = 64'h2aa50f4ec6f00933;
 		e_buf = 64'h0000000000000000;
@@ -829,7 +830,7 @@ module modexp_tb();
 		startCompute = 0;
 		getResult = 1;
 
-		#10000
+		#100000
 		$finish;
 
 	end

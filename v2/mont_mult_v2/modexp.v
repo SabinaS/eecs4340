@@ -307,7 +307,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES0\tIn State S6!");
+							// $display("Exp_state=ES0\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -337,7 +337,7 @@ module modexp
 				GET_K_E:	// a clock to initial the leftmost 1 in e = k_e
 				begin
 					if(e_in[k_e1][k_e2] == 1) begin
-						$display("e_in[%d][%d] = %d", k_e1, k_e2, e_in[k_e1][k_e2]);
+						// $display("e_in[%d][%d] = %d", k_e1, k_e2, e_in[k_e1][k_e2]);
 						exp_state = BIGLOOP;
 					end
 					else begin
@@ -488,7 +488,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES2\tIn State S6!");
+							// $display("Exp_state=ES2\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -506,7 +506,7 @@ module modexp
 						
 						S7:
 						begin
-							$display("k_e1: %d, k_e2: %d", k_e1, k_e2);
+							// $display("k_e1: %d, k_e2: %d", k_e1, k_e2);
 							if(e_in[k_e1][k_e2] == 1) begin
 								exp_state = CALC_C_BAR_M_BAR;	// go to c_bar = MonPro(c_bar, m_bar)
 							end
@@ -661,7 +661,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES3\tIn State S6!");
+							// $display("Exp_state=ES3\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -856,7 +856,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES4\tIn State S6!");
+							// $display("Exp_state=ES4\tIn State S6!");
 							// prepare end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin

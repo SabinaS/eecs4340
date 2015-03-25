@@ -831,6 +831,12 @@ module modexp_tb();
 
 	end
 	
+
+	always begin
+		$vdcpluson;
+		$monitor("%d", res_out);
+	end
+
 	always begin
 		#5 clk = ~clk;
 	end

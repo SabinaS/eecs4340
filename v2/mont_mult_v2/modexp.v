@@ -19,6 +19,10 @@ module modexp
 	I can offload all of the work computing n0', r, and t to the SW
 	system, and merely buffer these as I do M and E.
 	*/
+	input [`DATA_WIDTH - 1 : 0] r_buf,	
+	input [`DATA_WIDTH - 1 : 0] t_buf,
+	input [`DATA_WIDTH - 1 : 0] n_buf,	
+	input nprime0_buf,
 
 	output reg [3 : 0] state,
 	output reg [4 : 0] exp_state,	//	for MonExp
@@ -82,8 +86,8 @@ module modexp
 			v[i] = 64'h0000000000000000;
 		end
 		for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
-			m_in[i] = 64'h0000000000000000;
-			e_in[i] = 64'h0000000000000000;
+			m_in[i] <= 64'h0000000000000000;
+			e_in[i] <= 64'h0000000000000000;
 			//TODO add r,t,n0,n
 		end
 		res_out = 64'h0000000000000000;
@@ -104,8 +108,8 @@ module modexp
 				v[i] = 64'h0000000000000000;
 			end
 			for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
-				m_in[i] = 64'h0000000000000000;
-				e_in[i] = 64'h0000000000000000;
+				m_in[i] <= 64'h0000000000000000;
+				e_in[i] <= 64'h0000000000000000;
 			end
 			res_out = 64'h0000000000000000;
 			z = 64'h0000000000000000;	// initial C = 0
@@ -128,8 +132,8 @@ module modexp
 				LOAD_M_E:	// read in and initialize m, e
 				begin		
 					if(i <= `TOTAL_ADDR) begin
-						m_in[i] = m_buf;
-						e_in[i] = e_buf;
+						m_in[i] <= m_buf;
+						e_in[i] <= e_buf;
 						
 						i = i + 1;
 					end
@@ -140,45 +144,19 @@ module modexp
 				end
 				
 				LOAD_N:		// read and initialize r, t, nprime0, n
-				begin
-					//TODO change to buffer
-					// if(i <= `TOTAL_ADDR32) begin
-					// 	if(k == 0) begin
-					// 		addr_buf = i;
-					// 		if(i <= 2)
-					// 			addr_buf2 = i;
-					// 		else 
-					// 			addr_buf2 = 0;
-					// 		k = 1;
-					// 	end
-					// 	else begin
-					// 		k = 0;
-					// 		if(i > 0) begin
-					// 			if(i == 1)
-					// 				nprime0[0 +: `DATA_WIDTH32] = nprime0_buf;
-					// 			else if(i == 2)
-					// 				nprime0[`DATA_WIDTH32 +: `DATA_WIDTH32] = nprime0_buf;
-									
-					// 			if((i - 1) % 2 == 0) begin
-					// 				t_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = t_buf;
-					// 				n_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = n_buf;
-					// 				r_in[(i - 1) / 2][0 +: `DATA_WIDTH32] = r_buf;
-					// 			end
-					// 			else if((i - 1) % 2 == 1) begin
-					// 				t_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = t_buf;
-					// 				n_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = n_buf;
-					// 				r_in[(i - 1) / 2][`DATA_WIDTH32 +: `DATA_WIDTH32] = r_buf;
-					// 			end
-					// 		end
-					// 		i = i + 1;
-					// 	end
-					// end
-					// else begin
+				begin		
+					if(i <= `TOTAL_ADDR) begin
+						r_in[i] <= r_buf;
+						t_in[i] <= t_buf;
+						n_in[i] <= n_buf;
+						nprime0 [i] <= nprime0_buf;
+
+						i = i + 1;
+					end
+					else begin
 						i = 0;
-						j = 0;
-						k = 0;
 						exp_state = WAIT_COMPUTE;
-					// end				
+					end				
 				end
 			
 				WAIT_COMPUTE:

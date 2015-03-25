@@ -7,6 +7,9 @@ module modexp_tb();
 	reg [`DATA_WIDTH - 1 : 0] m_buf;
 	reg [`DATA_WIDTH - 1 : 0] e_buf;
 	reg [`DATA_WIDTH - 1 : 0] n_buf;
+	reg [`DATA_WIDTH - 1 : 0] r_buf;
+	reg [`DATA_WIDTH - 1 : 0] t_buf;
+	reg nprime0_buf;
 	reg startInput;
 	reg startCompute;
 	reg getResult;
@@ -16,6 +19,7 @@ module modexp_tb();
 	
 	modexp modexp0(
 		.clk(clk), .reset(reset), .m_buf(m_buf), .e_buf(e_buf),
+		.n_buf(n_buf), .r_buf(r_buf), .t_buf(t_buf), .nprime0_buf(nprime0_buf),
 		.startInput(startInput), .startCompute(startCompute), .getResult(getResult), 
 		.exp_state(exp_state), .state(state), .res_out(res_out)
 	);
@@ -28,6 +32,10 @@ module modexp_tb();
 		getResult = 0;
 		m_buf = 64'h0000000000000000;
 		e_buf = 64'h0000000000000000;
+		r_buf = 64'h0000000000000000;
+		t_buf = 64'h0000000000000000;
+		n_buf = 64'h0000000000000000;
+		nprime0_buf = 1'b0;
 		#100 startInput = 1;	
 
 #10

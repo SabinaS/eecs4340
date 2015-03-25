@@ -16,4 +16,4 @@ wave:
 	gtkwave waveform.vcd &
 
 clean:
-	rm -rf *.o *~ *.vpd sim* csrc DVEfiles *daidir *.ver *.exe *.exe.vdb *.key vc_hdrs.h urgReport
+	rm -rf *.o *~ *.vcd *.vpd sim* csrc DVEfiles *daidir *.ver *.exe *.exe.vdb *.key vc_hdrs.h urgReport

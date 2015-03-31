@@ -49,7 +49,7 @@ module modexp
 
 	// Declare states WHATEVER
 	parameter S0 = 0, S1 = 1, S2 = 2, S3 = 3, S4 = 4, S5 = 5, S6 = 6, S7 = 7;
-	parameter INIT_STATE = 0, LOAD_M_E = 1, LOAD_N = 2, WAIT_COMPUTE = 3, CALC_M_BAR = 4, GET_K_E = 5, BIGLOOP = 6, CALC_C_BAR_M_BAR = 7, CALC_C_BAR_1 = 8, COMPLETE = 9, OUTPUT_RESULT = 10, TERMINAL = 11;
+	parameter INIT_STATE = 0, LOAD_E_R_T = 1, LOAD_M = 2, WAIT_COMPUTE = 3, CALC_M_BAR = 4, GET_K_E = 5, BIGLOOP = 6, CALC_C_BAR_M_BAR = 7, CALC_C_BAR_1 = 8, COMPLETE = 9, OUTPUT_RESULT = 10, TERMINAL = 11;
 							
 	integer i;	// big loop i
 	integer j;
@@ -67,41 +67,6 @@ module modexp
                 .s(s0), .c(c0));
 
 
-	//TODO don't need any of these
-	// for data initialization
-	// reg [`ADDR_WIDTH32 - 1 : 0] addr_buf;
-	// reg [1 : 0] addr_buf2;
-	// wire [`DATA_WIDTH32 - 1 : 0] r_buf;
-	// wire [`DATA_WIDTH32 - 1 : 0] t_buf;
-	// wire [`DATA_WIDTH32 - 1 : 0] nprime0_buf;
-	// wire [`DATA_WIDTH32 - 1 : 0] n_buf;
-	// reg [`DATA_WIDTH32 - 1 : 0] res_buf;
-	// r_mem r_mem0 (.address(addr_buf), .clock(clk), .q(r_buf));
-	// t_mem t_mem0 (.address(addr_buf), .clock(clk), .q(t_buf));
-	// nprime0_mem nprime0_mem0 (.address(addr_buf2), .clock(clk), .q(nprime0_buf));
-	// n_mem n_mem0 (.address(addr_buf), .clock(clk), .q(n_buf));
-	
-	initial begin	// set to 0 
-		for(i = 0; i < `TOTAL_ADDR + 2; i = i + 1) begin
-			v[i] = 64'h0000000000000000;
-		end
-		for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
-			m_in[i] <= 64'h0000000000000000;
-			e_in[i] <= 64'h0000000000000000;
-			//TODO add r,t,n0,n
-		end
-		res_out = 64'h0000000000000000;
-		
-		z = 64'h0000000000000000;	// initial C = 0
-		i = 0;
-		j = 0;
-		k = 0;
-		state = S0;
-		exp_state = INIT_STATE;
-		k_e1 = `TOTAL_ADDR - 1;
-		k_e2 = `DATA_WIDTH - 1;
-	end
-	
 	always @ (posedge clk or posedge reset) begin
 		if (reset) begin	// reset all...
 			for(i = 0; i < `TOTAL_ADDR + 2; i = i + 1) begin
@@ -111,13 +76,13 @@ module modexp
 				m_in[i] <= 64'h0000000000000000;
 				e_in[i] <= 64'h0000000000000000;
 			end
-			res_out = 64'h0000000000000000;
+			res_out <= 64'h0000000000000000;
 			z = 64'h0000000000000000;	// initial C = 0
 			i = 0;
 			j = 0;
 			k = 0;
-			state = S0;
-			exp_state = INIT_STATE;
+			state <= S0;
+			exp_state <= INIT_STATE;
 			k_e1 = `TOTAL_ADDR - 1;
 			k_e2 = `DATA_WIDTH - 1;
 		end
@@ -126,43 +91,41 @@ module modexp
 				INIT_STATE: // initial state
 				begin
 					if(startInput)
-						exp_state = LOAD_M_E;
+						exp_state <= LOAD_E_R_T;
 				end
 			
-				LOAD_M_E:	// read in and initialize m, e
+				LOAD_E_R_T:	// read in and initialize e, r, t, n, n0'
 				begin		
 					if(i <= `TOTAL_ADDR) begin
-						m_in[i] <= m_buf;
 						e_in[i] <= e_buf;
-						
-						i = i + 1;
-					end
-					else begin
-						i = 0;
-						exp_state = LOAD_N;
-					end
-				end
-				
-				LOAD_N:		// read and initialize r, t, nprime0, n
-				begin		
-					if(i <= `TOTAL_ADDR) begin
 						r_in[i] <= r_buf;
 						t_in[i] <= t_buf;
 						n_in[i] <= n_buf;
-						nprime0 [i] <= nprime0_buf;
-
+						nprime0 [i] <= nprime0_buf;	
 						i = i + 1;
 					end
 					else begin
 						i = 0;
-						exp_state = WAIT_COMPUTE;
-					end				
+						exp_state <= LOAD_M;
+					end
+				end
+				
+				LOAD_M: //load m
+				begin		
+					if(i <= `TOTAL_ADDR) begin
+						m_in[i] <= m_buf;
+						i = i + 1;
+					end
+					else begin
+						i = 0;
+						exp_state <= WAIT_COMPUTE;
+					end
 				end
 			
 				WAIT_COMPUTE:
 				begin
 					if(startCompute) begin
-						exp_state = CALC_M_BAR;		
+						exp_state <= CALC_M_BAR;		
 					end					
 				end
 				
@@ -186,7 +149,7 @@ module modexp
 								j = j + 1;
 								if(j == `TOTAL_ADDR) begin	// loop end
 									j = 0;
-									state = S1;
+									state <= S1;
 								end
 								k = 0;
 							end 
@@ -204,7 +167,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								v[`TOTAL_ADDR + 1] <= c0;
-								state = S2;
+								state <= S2;
 								k = 0;
 							end 
 						end
@@ -220,7 +183,7 @@ module modexp
 							end
 							else if(k == 1) begin
 								m <= s0;	
-								state = S3;
+								state <= S3;
 								k = 0;
 							end
 						end
@@ -256,7 +219,7 @@ module modexp
 									j = j + 1;						
 									if(j == `TOTAL_ADDR) begin
 										j = 0;
-										state = S4;
+										state <= S4;
 									end
 									k = 0;
 								end
@@ -275,7 +238,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR - 1] <= s0;
 								z <= c0;	
-								state = S5;
+								state <= S5;
 								k = 0;
 							end
 						end
@@ -292,10 +255,11 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								i = i + 1;
-								state = S0;
 								if(i >= `TOTAL_ADDR) begin	// end
-									state = S6;
+									state <= S6;
 									i = 0;
+								end else begin
+									state <= S0;
 								end
 								k = 0;
 							end
@@ -303,7 +267,6 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES0\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -319,13 +282,13 @@ module modexp
 							i = 0;
 							j = 0;
 							k = 0;
-							state = S7;
+							state <= S7;
 						end
 						
 						S7:
 						begin
-							exp_state = GET_K_E;	// go to next state
-							state = S0;
+							exp_state <= GET_K_E;	// go to next state
+							state <= S0;
 						end
 					endcase
 				end
@@ -333,8 +296,8 @@ module modexp
 				GET_K_E:	// a clock to initial the leftmost 1 in e = k_e
 				begin
 					if(e_in[k_e1][k_e2] == 1) begin
-						$display("e_in[%d][%d] = %d", k_e1, k_e2, e_in[k_e1][k_e2]);
-						exp_state = BIGLOOP;
+						// $display("e_in[%d][%d] = %d", k_e1, k_e2, e_in[k_e1][k_e2]);
+						exp_state <= BIGLOOP;
 					end
 					else begin
 						if(k_e2 == 0) begin
@@ -367,7 +330,7 @@ module modexp
 								j = j + 1;
 								if(j == `TOTAL_ADDR) begin	// loop end
 									j = 0;
-									state = S1;
+									state <= S1;
 								end
 								k = 0;
 							end 
@@ -385,7 +348,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								v[`TOTAL_ADDR + 1] <= c0;
-								state = S2;
+								state <= S2;
 								k = 0;
 							end 
 						end
@@ -401,7 +364,7 @@ module modexp
 							end
 							else if(k == 1) begin
 								m <= s0;	
-								state = S3;
+								state <= S3;
 								k = 0;
 							end
 						end
@@ -437,7 +400,7 @@ module modexp
 									j = j + 1;						
 									if(j == `TOTAL_ADDR) begin
 										j = 0;
-										state = S4;
+										state <= S4;
 									end
 									k = 0;
 								end
@@ -456,7 +419,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR - 1] <= s0;
 								z <= c0;	
-								state = S5;
+								state <= S5;
 								k = 0;
 							end
 						end
@@ -473,10 +436,11 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								i = i + 1;
-								state = S0;
 								if(i >= `TOTAL_ADDR) begin	// end
-									state = S6;
+									state <= S6;
 									i = 0;
+								end else begin
+									state <= S0;
 								end
 								k = 0;
 							end
@@ -484,7 +448,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES2\tIn State S6!");
+							// $display("Exp_state=ES2\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -497,25 +461,25 @@ module modexp
 							i = 0;
 							j = 0;
 							k = 0;
-							state = S7;
+							state <= S7;
 						end
 						
 						S7:
 						begin
-							$display("k_e1: %d, k_e2: %d", k_e1, k_e2);
+							// $display("k_e1: %d, k_e2: %d", k_e1, k_e2);
 							if(e_in[k_e1][k_e2] == 1) begin
-								exp_state = CALC_C_BAR_M_BAR;	// go to c_bar = MonPro(c_bar, m_bar)
+								exp_state <= CALC_C_BAR_M_BAR;	// go to c_bar = MonPro(c_bar, m_bar)
 							end
 							else begin
 								if(k_e1 <= 0 && k_e2 <= 0)
-									exp_state = CALC_C_BAR_1;
+									exp_state <= CALC_C_BAR_1;
 								else if(k_e2 == 0) begin	// down 1 of e
 									k_e1 = k_e1 - 1;
 									k_e2 = `DATA_WIDTH - 1;
 								end else
 									k_e2 = k_e2 - 1;
 							end
-							state = S0;
+							state <= S0;
 						end
 					endcase				
 				end
@@ -540,7 +504,7 @@ module modexp
 								j = j + 1;
 								if(j == `TOTAL_ADDR) begin	// loop end
 									j = 0;
-									state = 1;
+									state <= S1;
 								end
 								k = 0;
 							end 
@@ -558,7 +522,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								v[`TOTAL_ADDR + 1] <= c0;
-								state = S2;
+								state <= S2;
 								k = 0;
 							end 
 						end
@@ -574,7 +538,7 @@ module modexp
 							end
 							else if(k == 1) begin
 								m <= s0;	
-								state = S3;
+								state <= S3;
 								k = 0;
 							end
 						end
@@ -610,7 +574,7 @@ module modexp
 									j = j + 1;						
 									if(j == `TOTAL_ADDR) begin
 										j = 0;
-										state = S4;
+										state <= S4;
 									end
 									k = 0;
 								end
@@ -629,7 +593,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR - 1] <= s0;
 								z <= c0;	
-								state = S5;
+								state <= S5;
 								k = 0;
 							end
 						end
@@ -646,10 +610,11 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								i = i + 1;
-								state = S0;
 								if(i >= `TOTAL_ADDR) begin	// end
-									state = S6;
+									state <= S6;
 									i = 0;
+								end else begin
+									state <= S0;
 								end
 								k = 0;
 							end
@@ -657,7 +622,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES3\tIn State S6!");
+							// $display("Exp_state=ES3\tIn State S6!");
 							// prepaer end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -670,14 +635,14 @@ module modexp
 							i = 0;
 							j = 0;
 							k = 0;
-							state = S7;
+							state <= S7;
 						end
 						
 						S7:
 						begin
 							if(k_e1 <= 0 && k_e2 <= 0) begin
-								exp_state = CALC_C_BAR_1;
-								state = S0;
+								exp_state <= CALC_C_BAR_1;
+								state <= S0;
 							end
 							else begin
 								if(k_e2 == 0) begin	// down 1 of e
@@ -685,8 +650,8 @@ module modexp
 									k_e2 = `DATA_WIDTH - 1;
 								end else
 									k_e2 = k_e2 - 1;
-								exp_state = BIGLOOP;
-								state = S0;
+								exp_state <= BIGLOOP;
+								state <= S0;
 							end
 						end
 					endcase					
@@ -713,7 +678,7 @@ module modexp
 									j = j + 1;
 									if(j == `TOTAL_ADDR) begin	// loop end
 										j = 0;
-										state = S1;
+										state <= S1;
 									end
 									k = 0;
 								end 
@@ -734,7 +699,7 @@ module modexp
 									j = j + 1;
 									if(j == `TOTAL_ADDR) begin	// loop end
 										j = 0;
-										state = S1;
+										state <= S1;
 									end
 									k = 0;
 								end 	
@@ -753,7 +718,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								v[`TOTAL_ADDR + 1] <= c0;
-								state = S2;
+								state <= S2;
 								k = 0;
 							end 
 						end
@@ -769,7 +734,7 @@ module modexp
 							end
 							else if(k == 1) begin
 								m <= s0;	
-								state = S3;
+								state <= S3;
 								k = 0;
 							end
 						end
@@ -805,7 +770,7 @@ module modexp
 									j = j + 1;						
 									if(j == `TOTAL_ADDR) begin
 										j = 0;
-										state = S4;
+										state <= S4;
 									end
 									k = 0;
 								end
@@ -824,7 +789,7 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR - 1] <= s0;
 								z <= c0;	
-								state = S5;
+								state <= S5;
 								k = 0;
 							end
 						end
@@ -841,10 +806,11 @@ module modexp
 							else if(k == 1) begin
 								v[`TOTAL_ADDR] <= s0;
 								i = i + 1;
-								state = S0;
 								if(i >= `TOTAL_ADDR) begin	// end
-									state = S6;
+									state <= S6;
 									i = 0;
+								end else begin
+									state <= S0;
 								end
 								k = 0;
 							end
@@ -852,7 +818,7 @@ module modexp
 						
 						S6:
 						begin
-							$display("Exp_state=ES4\tIn State S6!");
+							// $display("Exp_state=ES4\tIn State S6!");
 							// prepare end state, update output, and set all to default
 							// store into m_bar and c_bar
 							for(i = 0; i < `TOTAL_ADDR; i = i + 1) begin
@@ -865,13 +831,13 @@ module modexp
 							i = 0;
 							j = 0;
 							k = 0;
-							state = S7;
+							state <= S7;
 						end
 						
 						S7:
 						begin
-							exp_state = COMPLETE;	// end state of exp!
-							state = S0;
+							exp_state <= COMPLETE;	// end state of exp!
+							state <= S0;
 						end
 					endcase		
 				end
@@ -879,27 +845,28 @@ module modexp
 				COMPLETE:
 				begin
 					if(getResult) begin
-						exp_state = OUTPUT_RESULT;
+						exp_state <= OUTPUT_RESULT;
 					end				
 				end
 				
 				OUTPUT_RESULT:	// output 4096 bits result (c_bar) to output buffer!
 				begin
 					if(i < `TOTAL_ADDR) begin
-						res_out = c_bar[i];
+						res_out <= c_bar[i];
 						
 						i = i + 1;
 					end
 					else begin
-						exp_state = TERMINAL;
+						exp_state <= TERMINAL;
 						i = 0;
-						res_out = 64'h0000000000000000;
+						res_out <= 64'h0000000000000000;
 					end
 				end
 				
 				TERMINAL:
 				begin
-					res_out = 64'h0000000000000000;
+					res_out <= 64'h0000000000000000;
+					exp_state <= LOAD_M;
 				end
 			endcase
 		end

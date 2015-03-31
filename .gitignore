@@ -1,2 +1,15 @@
 # Temporary files
 *~
+.DS_STORE
+
+WORK/
+command.log
+default.svf
+log/
+multiplier_synth.ddc
+multiplier_synth.sdc
+multiplier_synth.sdf
+multiplier_synth.v
+nohup.out
+report/
+*.vcd

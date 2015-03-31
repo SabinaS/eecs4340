@@ -37,7 +37,9 @@ module modexp_tb();
 		r_buf = 64'h0000000000000000;
 		t_buf = 64'h0000000000000000;
 		nprime0_buf = 1'b0;
-		#100 startInput = 1;	
+		#10 reset = 1;
+		#10 reset = 0;
+		#10 startInput = 1;	
 
 
 

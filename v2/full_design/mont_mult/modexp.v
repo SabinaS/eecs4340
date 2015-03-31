@@ -10,6 +10,7 @@ module modexp
 	input reset,
 	input startInput,	// tell FPGA to start input 
 	input startCompute,	// tell FPGA to start compute
+	input loadNext, 
 	input getResult,	// tell FPGA to output result
 	input [`DATA_WIDTH - 1 : 0] m_buf,	
 	input [`DATA_WIDTH - 1 : 0] e_buf,
@@ -866,7 +867,9 @@ module modexp
 				TERMINAL:
 				begin
 					res_out <= 64'h0000000000000000;
-					exp_state <= LOAD_M;
+					if(loadNext) begin
+						exp_state <= LOAD_M;		
+					end	
 				end
 			endcase
 		end

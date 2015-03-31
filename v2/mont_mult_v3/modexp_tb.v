@@ -832,9 +832,9 @@ module modexp_tb();
 
 		startCompute = 1;
 		
-		while(exp_state!=11){
-		#10
-		}
+		while(exp_state!=11) begin
+		#10 startCompute = 1;
+		end
 		startCompute = 0;
 		getResult = 1;
 

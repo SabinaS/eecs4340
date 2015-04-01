@@ -21,71 +21,71 @@ module fat_core (
    // fname_i: the file name of 8.3 format
    // fext_i: the file extension of 8.3 format
    input [`CHF_NAME_SIZE-1:0] fname_i;
-   input [`CHF_EXT_SIZE-1:0] fext_i;
+   input [`CHF_EXT_SIZE-1:0]  fext_i;
    // aes_i: data from the AES module to write to the SD card
-   input [`AES_DAT_SIZE-1:0] aes_i;
-   
+   input [`AES_DAT_SIZE-1:0]  aes_i;
+
    // spi_read_o: initiate a read to the card
    // spi_write_o: initiate a write to the card
-   output logic spi_read_o, spi_write_o;
+   output logic 	      spi_read_o, spi_write_o;
    // ready_o: I can accept data to write
    // valid_o: I have read data to give you
-   output logic ready_o, valid_o, aes_valid_o;
+   output logic 	      ready_o, valid_o, aes_valid_o;
    // ditto
    output logic [`CHF_NAME_SIZE-1:0] fname_o;
-   output logic [`CHF_EXT_SIZE-1:0] fext_o;
+   output logic [`CHF_EXT_SIZE-1:0]  fext_o;
    // aes_o: data from the SD card to the AES modules
-   output logic [`AES_DAT_SIZE-1:0] aes_o;
+   output logic [`AES_DAT_SIZE-1:0]  aes_o;
    // No more files to read
-   output logic all_read_o;
-   
+   output logic 		     all_read_o;
+
    // Communicating with the SD card
-   inout [`BUS_WIDTH-1:0] bus_io;
-   
+   inout [`BUS_WIDTH-1:0] 	     bus_io;
+
    // Communicating with the SD card again
-   logic do_io;
-   logic [`BUS_WIDTH-1:0] bus_dat;
-   
+   logic 			     do_io;
+   logic [`BUS_WIDTH-1:0] 	     bus_dat;
+
    // Root dir cache
-   logic [`SD_BLOCK_SIZE-1:0] rdir_cache;
-   logic [`SD_BLOCK_SIZE_WIDTH-1:0] rdir_cache_pos;
-   logic [`LBA_BEGIN_SIZE-1:0] rdir_count;
+   logic [`SD_BLOCK_SIZE-1:0] 	     rdir_cache;
+   logic [`SD_BLOCK_SIZE_WIDTH-1:0]  rdir_cache_pos;
+   logic [`LBA_BEGIN_SIZE-1:0] 	     rdir_count;
    // Single block SD cache
-   logic [`SD_BLOCK_SIZE-1:0] spi_buf;
-   logic [`SD_BLOCK_SIZE_WIDTH-1:0] spi_buf_pos;
+   logic [`SD_BLOCK_SIZE-1:0] 	     spi_buf;
+   logic [`SD_BLOCK_SIZE_WIDTH-1:0]  spi_buf_pos;
    // Single block FAT32 cache
-   reg[7:0] block[`MAX_BLOCK_SIZE-1:0];
+   reg [7:0] 			     block[`MAX_BLOCK_SIZE-1:0];
    logic [`MAX_BLOCK_SIZE_WIDTH-1:0] block_count;
-   
+
    // initialization structures
-   enum {READ_BS, AWAIT_BS, PARSE_BS, READ_BPR, AWAIT_BPR, PARSE_BPR, FINALIZE_VALUES, CALCULATE_ROOT_LBA, PULL_ROOT_DIR, AWAIT_ROOT_DIR, IIDLE, IFAIL} init;
-   logic [`PART_COUNT_WIDTH-1:0] part_pos;
-   logic [`LBA_BEGIN_SIZE-1:0] part_begin;
-   logic [`BPB_BytsPerSec_SIZE-1:0] BPB_BytsPerSec;
-   logic [`BPB_SecPerClus_SIZE-1:0] BPB_SecPerClus;
-   logic [`BPB_RsvdSecCnt_SIZE-1:0] BPB_RsvdSecCnt;
-   logic [`BPB_NumFATs_SIZE-1:0] BPB_NumFATs;
-   logic [`BPB_FATSz32_SIZE-1:0] BPB_FATSz32;
-   logic [`BPB_RootClus_SIZE-1:0] BPB_RootClus;
-   
+   enum 			     {READ_BS, AWAIT_BS, PARSE_BS, READ_BPR, AWAIT_BPR, PARSE_BPR, FINALIZE_VALUES, CALCULATE_ROOT_LBA, PULL_ROOT_DIR, AWAIT_ROOT_DIR, IIDLE, IFAIL} init;
+   logic [`PART_COUNT_WIDTH-1:0]     part_pos;
+   logic [`LBA_BEGIN_SIZE-1:0] 	     part_begin;
+   logic [`BPB_BytsPerSec_SIZE-1:0]  BPB_BytsPerSec;
+   logic [`BPB_SecPerClus_SIZE-1:0]  BPB_SecPerClus;
+   logic [`BPB_RsvdSecCnt_SIZE-1:0]  BPB_RsvdSecCnt;
+   logic [`BPB_NumFATs_SIZE-1:0]     BPB_NumFATs;
+   logic [`BPB_FATSz32_SIZE-1:0]     BPB_FATSz32;
+   logic [`BPB_RootClus_SIZE-1:0]    BPB_RootClus;
+
    // File location structures
-   logic [`LBA_BEGIN_SIZE-1:0] calc_lba;
-   logic [`LBA_BEGIN_SIZE-1:0] fat_begin_lba;
-   logic [`LBA_BEGIN_SIZE-1:0] cluster_begin_lba;
-   logic [`LBA_BEGIN_SIZE-1:0] root_dir_first_cluster;
-   logic [7:0] sectors_per_cluster;
-   
+   logic [`LBA_BEGIN_SIZE-1:0] 	     calc_lba;
+   logic [`LBA_BEGIN_SIZE-1:0] 	     fat_begin_lba;
+   logic [`LBA_BEGIN_SIZE-1:0] 	     cluster_begin_lba;
+   logic [`LBA_BEGIN_SIZE-1:0] 	     root_dir_first_cluster;
+   logic [7:0] 			     sectors_per_cluster;
+
    // Read data structures
-   enum {RIDLE, CALCULATE_READ_LBA, RREAD_LBA, RAWAIT_LBA, RRESPOND, RDONE} read_state;
-   
+   enum 			     {RIDLE, CALCULATE_READ_LBA, RREAD_LBA, RAWAIT_LBA, RRESPOND, RDONE} read_state;
+
    // Write data structures
-   enum {WIDLE} write_state;
-   
+   enum 			     {WIDLE} write_state;
+
    always_ff @(posedge clk) begin
       if (rst) begin
          do_io <= '0;
          bus_dat <= '0;
-         
+
          spi_read_o <= '0;
          spi_write_o <= '0;
          ready_o <= '1;
@@ -94,14 +94,14 @@ module fat_core (
          fext_o <= '0;
          aes_o <= '0;
          all_read_o <= '0;
-         
+
          block_count <= '0;
          spi_buf <= '0;
          spi_buf_pos <= '0;
          rdir_cache <= '0;
          rdir_cache_pos <= '0;
          rdir_count <= '0;
-         
+
          init <= READ_BS;
          read_state <= RIDLE;
          write_state <= WIDLE;
@@ -169,7 +169,7 @@ module fat_core (
             else
                aes_valid_o <= '1;
          end
-       
+
          // Initialization task
          if (init == READ_BS) begin
             // Read the boot sector.
@@ -203,7 +203,7 @@ module fat_core (
                part_pos++;
             // Check the 5th byte for the FAT sector code
             if (spi_buf[`BOOT_CODE_BITS+part_pos*`PART_ENTRY_BITS+4*8+:8] == 'hB
-                || spi_buf[`BOOT_CODE_BITS+part_pos*`PART_ENTRY_BITS+4*8+:8] == 'hC) begin
+                  || spi_buf[`BOOT_CODE_BITS+part_pos*`PART_ENTRY_BITS+4*8+:8] == 'hC) begin
                part_begin <= spi_buf[`BOOT_CODE_BITS+part_pos*`PART_ENTRY_BITS+8*8+:`LBA_BEGIN_SIZE];
                init <= READ_BPR;
             end
@@ -279,5 +279,5 @@ module fat_core (
 
    // Combinational logic
    assign bus_io = do_io ? bus_dat : 'z;
-   
+
 endmodule

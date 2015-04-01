@@ -160,7 +160,7 @@ bit 		cmd_rdy = 0;
 bit 		init_complete = 0;
 
 bit      cmd8_timeout = 0;
-bit      cmd58_r1 = 1;
+bit      cmd58_r1 = 0;
 
 int      acmd41_r1_err_max = 1;
 int      acmd41_r1_err_cnt = 0;

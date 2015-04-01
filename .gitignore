@@ -13,3 +13,14 @@ multiplier_synth.v
 nohup.out
 report/
 *.vcd
+
+*synth*
+*.bak*
+*_LIB
+*.orig
+*.dpf
+*.qsf
+*db/
+*incremental_db/
+*output_files/
+*.qsys*

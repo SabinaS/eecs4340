@@ -1,0 +1,7 @@
+`define CHF_NAME_SIZE 8
+`define CHF_EXT_SIZE 3
+
+`define AES_DAT_SIZE 128
+
+`define MAX_BLOCK_SIZE 4096
+`define MAX_BLOCK_SIZE_WIDTH $clog2(`MAX_BLOCK_SIZE+1)

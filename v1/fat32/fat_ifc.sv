@@ -1,7 +1,8 @@
 `timescale 1ns/1ns
-`include "defines.sv"
 
-interface spi_ifc (
+interface spi_ifc #(
+             parameter BUS_WIDTH = 128
+          ) (
              input bit clk
           );
 
@@ -12,7 +13,7 @@ logic [2:0] 			 to_slave_o;
 logic 			 ready_o, valid_o, ack_o;
 logic 			 sclk_posedge_o, sclk_negedge_o;
 
-wire [`BUS_WIDTH-1:0] 	 dat;
+wire [BUS_WIDTH-1:0] 	 dat;
 
 // note that the outputs and inputs are reversed from the dut
 clocking cb @(posedge clk);

@@ -23,16 +23,16 @@ define_design_lib WORK -path ./WORK
 ##################################################################
 # COMPILATION PARAMETERS
 ##################################################################
-set myFiles [glob rtl/*.sv]; # RTL source files
+set myFiles [glob rtl/*.sv rtl/*.v]; # RTL source files
 set fileFormat sverilog; # verilog or sverilog
-set basename cam_cell; # Top-level module name
+set basename spi_core; # Top-level module name
 
 # Clock information
 set CLK "clk"; # The name of your clock
 set virtual 0; # 1 if virtual clock, 0 if real clock
 
 # Timing information
-set clkPeriodNS 2.5 ; # Desired clock period (in ns)
+set clkPeriodNS 20 ; # Desired clock period (in ns)
 # Input delay tells DC how long after the clock before an input becomes valid.
 set inDelayNS [expr $clkPeriodNS*.1]; # Delay from clock to inputs valid
 set outDelayNS [expr $clkPeriodNS*.1]; # Delay from clock to output valid
